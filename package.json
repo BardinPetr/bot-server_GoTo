@@ -1,0 +1,24 @@
+{
+  "name": "goto_bot_server",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BardinPetr/bot-server_GoTo.git"
+  },
+  "author": "BardinPetr",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BardinPetr/bot-server_GoTo/issues"
+  },
+  "homepage": "https://github.com/BardinPetr/bot-server_GoTo#readme",
+  "dependencies": {
+    "async": "~0.2.8",
+    "express": "~3.2.4",
+    "socket.io": "~0.9.14"
+  }
+}
