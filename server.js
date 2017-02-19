@@ -1,5 +1,6 @@
 var http = require('http');
 var path = require('path');
+var moment = require("moment");
 
 var async = require('async');
 var socketio = require('socket.io');
@@ -14,18 +15,24 @@ var sockets = [];
 
 var plan_text = "raspisanie\nraspisanie1:10.11";
 var info_text = "zdes dolhna bit informatsia";
+var achiev_arr = [];
 
-setInterval(update_data, 1000);
-function update_data(){
-  
-}
+setInterval(update5, 5000);
+setInterval(update1, 1000);
+function update5(){
+  broadcast('r_ach', achiev_arr.join(';'));
+};
+function update1(){
+  broadcast('time', moment().utc().format('h:mm:ss a'));
+};
 
 io.on('connection', function (socket) {
   sockets.push(socket);
   
   broadcast('r_dayplan', plan_text);
   broadcast('r_info', info_text);
-
+  broadcast('r_ach', achiev_arr.join(';'));
+  
   socket.on('disconnect', function () {
     sockets.splice(sockets.indexOf(socket), 1);
   });
@@ -56,6 +63,18 @@ io.on('connection', function (socket) {
   socket.on('newmsg', function (msg) {
     console.log("New message recieved: " + msg);
   });
+  
+  //ACHIEVEMENTS
+  socket.on('newach', function (msg) {
+    achiev_arr = achiev_arr.concat(msg);
+    console.log(achiev_arr);
+    console.log("New achievement recieved: \n" + msg);
+  });    
+  
+  socket.on('req_ach', function (msg) {
+    console.log("Ach requested");
+    broadcast('r_ach', achiev_arr.join(';'));
+  });  
 });
 
 
