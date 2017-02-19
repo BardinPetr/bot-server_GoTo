@@ -29,11 +29,30 @@
           <h3>Plan for day:</h3>
           <form ng-submit="newplan()">
               <textarea id="plan_input" name="plan" cols="10" rows="10" class="span4" ng-model="plan_text" 
-                                                                                      placeholder="Type plan here. \n use: '{time}:{action}'"></textarea>
+                                                                                      placeholder="Type plan here. use: '{time}:{action}'"></textarea>
               <input type="submit" class="span4 btn btn-primary" value="Send Plan" ng-disabled="!plan_text">
               <input type="button" class="span2 btn" value="Get Last Plan" ng-click="getplan()">
+          </form>          
+          <h3>Information:</h3>
+          <form ng-submit="setinfo()">
+              <textarea id="info_input" name="plan" cols="10" rows="10" class="span4" ng-model="info_text" 
+                                                                                      placeholder="Type info here."></textarea>
+              <input type="submit" class="span4 btn btn-primary" value="Save Info" ng-disabled="!info_text">
           </form>
+      </div>      
+      
+      <div class="pull-right">
+      <div class="span6">
+          <h3>Send a message:</h3>
+          <form ng-submit="sendmsg()">
+              <input type="text" class="span5" ng-model="msg_text" placeholder="Message">
+              <input type="submit" class="span2 btn btn-primary" value="Send Message to all" ng-disabled="!msg_text">
+          </form>          
+
+      </div>     
+
       </div>
+      
         
         <!--
           <table class="table table-striped table-bordered">
