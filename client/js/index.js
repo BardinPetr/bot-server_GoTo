@@ -37,7 +37,7 @@ function ClientController($scope) {
     
     ////
     socket.on('r_ach', function (msg) {
-      $scope.achiev = msg.split(';');
+      $scope.achiev = msg.split('\n');
       $scope.$apply();
     });
     $scope.addach = function addach() {

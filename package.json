@@ -23,6 +23,6 @@
     "socket.io": "^1.7.0",
     "http": "",
     "path": "",
-    "mongodb": ""
+    "mongodb": "^2.2.0"
   }
 }
