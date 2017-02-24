@@ -28,18 +28,14 @@ global.db_info_text;
 global.db_achiev_arr;
 global.ok = false;
 
-setInterval(update15, 5000);
 setInterval(update5, 5000);
 setInterval(update1, 1000);
 
 function update1(){
   broadcast('time', moment().utc().format('h:mm:ss a'));
+  broadcast('r_ach', dbarr_to_str(global.db_achiev_arr))
 }
-function update5() {
-  broadcast('r_ach', dbarr_to_str(global.db_achiev_arr));
-}
-
-function update15(){
+function update5(){
   mongo.connect(url, function(err, db) {
     assert.equal(null, err);
 
@@ -47,14 +43,6 @@ function update15(){
       getdb(db, 'timetable', function() {
         getdb(db, 'achievements', function() {
           db.close();
-          
-          log("[db] Information: ");
-          log(global.db_info_text);
-          log("[db] Dayplan: ");
-          log(global.db_plan_text);  
-          log("[db] Achievements: ");
-          log(global.db_achiev_arr);
-          
           if(!global.ok)
             start_srv();
           global.ok = true;
@@ -201,7 +189,7 @@ function broadcast(event, data) {
 }
 
 function start_srv(){
-  server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
+  server.listen(process.env.PORT || 80, process.env.IP || "127.0.0.1", function(){
     var addr = server.address();
     log("Server listening at", addr.address + ":" + addr.port);
   });

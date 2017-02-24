@@ -2,7 +2,7 @@ function ClientController($scope) {
     var socket = io.connect();
     
     $scope.plan_text = '';
-    $scope.achiev = ['test1: trrr', 'fdfef: ref'];
+    $scope.achiev = [];
     socket.on('connect', function () {
     });
     

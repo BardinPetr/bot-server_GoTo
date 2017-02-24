@@ -82,10 +82,7 @@ var setdb = function(col, data, callback) {
     if(col == 'users'){
         getdb(db, 'users', function(data1){
             var pre1 = unique(data1.users.concat(data[0]));
-            log(pre1);
-            pre1 = (pre1  == [] ? []:pre1)
             var pre2 = unique(data1.superusers.concat(data[1]));
-            pre2 = (pre2  == [] ? []:pre2)
 
             collection.updateOne({"main": true}, 
                  { $set: { "body" : {"users": pre1, "superusers": pre2, "password": (data[3] || data1.password)} } }, 
@@ -141,10 +138,16 @@ function broadcast_t(type, text){
     var arr = (type == false ? global.db_users:global.db_superusers)
     for(var i = 0; i < arr.length; i++){
         var id = arr[i];
-        log("Sending data to " + id);
-        //bot.sendMessage(id, text);
+        if (id){
+            log("Sending data to " + id);
+            bot.sendMessage(id, text);
+        }
     }
     log("Sending finished");
+}
+function broadcast_a(text){
+    broadcast_t(false, text);
+    broadcast_t(true, text);
 }
 
 function start(){
@@ -158,20 +161,34 @@ function start(){
 //Bot action handlers
 function onstart(msg, match) {
     var id = msg.chat.id;
-    bot.sendMessage(id, "Привет!\nТы студент или организатор(преподаватель)? Напиши мне \"Я студент\", для того чтобы авторизироваться в  как студент.\n"
-                    + "Если вы организатор, то напишите так: \"Я организатор {пароль оргпанизатора}\"");
+    bot.sendMessage(id, "Привет!");
+                    
+    const opts = {
+        reply_markup: JSON.stringify({
+          keyboard: [
+            ["Я студент"],
+            ["Я организатор"]
+          ],
+          one_time_keyboard:true
+        })
+    };
+    bot.sendMessage(msg.chat.id, 'Ты студент или организатор(преподаватель)?', opts);
+    
     bot.onText(/Я студент/, function(msg, match){
         bot.sendMessage(id, "Очень хорошо! Теперь ты в системе!");
         setdb("users", [[id], []], function(){});
         return;
     });
-    bot.onText(/Я организатор (.+)/, function(msg, match){
-        var res = match[1];
-        if (res == global.pswd){
-            bot.sendMessage(id, "Очень хорошо! Теперь вы в системе!");
-            setdb("users", [[], [id]], function(){});
-        }
-        else
-           bot.sendMessage(id, "Так, так! Кто-то пытается притвориться организатором?!"); 
+    bot.onText(/Я организатор/, function(msg, match){
+        bot.sendMessage(id, "Хорошо, но вам нужно подтвердить должность организатора паролем! Напишате мне его так: \"Мой пароль: {пароль}\"");
+        bot.onText(/Мой пароль: (.+)/, function(msg, match){
+            var res = match[1];
+            if (res == global.pswd){
+                bot.sendMessage(id, "Очень хорошо! Теперь вы в системе!");
+                setdb("users", [[], [id]], function(){});
+            }
+            else
+               bot.sendMessage(id, "Так, так! Кто-то пытается притвориться организатором?!"); 
+        });
     });
 }
