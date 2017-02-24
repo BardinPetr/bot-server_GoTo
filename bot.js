@@ -18,6 +18,8 @@ global.db_users;
 global.db_superusers;
 global.pswd;
 global.run = false;
+global.rawinput_state = 0;
+global.cmds = ['start','Я студент','Я организатор','Мой пароль:','timetable','Просмотреть расписание','Изменить расписание'];
 
 setInterval(updatedb, 5000);
 
@@ -128,6 +130,17 @@ function unique(data){
     data.length = k;
     return data;
 }
+
+function ncmd(text){
+    for(var i =0; i < global.cmds.length; i++)
+    {
+        var x= global.cmds[i];
+        if(text.indexOf(x) != -1)
+            return 0;
+    }
+    return 1;
+}
+
 function log(data){
   if(DEBUG)
     console.log(data);
@@ -149,16 +162,60 @@ function broadcast_a(text){
     broadcast_t(false, text);
     broadcast_t(true, text);
 }
+function dbarr_to_str(data) {
+  var out = [];
+  try{
+    for(var i = 0; i < data.length; i++){
+      out[i] = data[i].join(': ');
+    }
+    return out.join('\n');
+  } catch(E){
+    
+  }
+  return "";
+}
+function str_to_dbarr(data) {
+  try{
+    var prearr = data.split("\n");
+    for(var i = 0; i < prearr.length; i++){
+      prearr[i] = prearr[i].split(": ");
+    }
+    return prearr
+  } catch(E){
+    
+  }
+  return [];
+}
+function str_to_dbarr(data, del) {
+  try{
+    var prearr = data.split(del);
+    for(var i = 0; i < prearr.length; i++){
+      prearr[i] = prearr[i].split(': ');
+    }
+    return prearr
+  } catch(E){
+    
+  }
+  return [];
+}
 
 function start(){
     setInterval(update5, 5000);
     setInterval(update1, 1000);
     
     bot.onText(/\/start/, onstart);
+    bot.onText(/Я студент/, onstudent);
+    bot.onText(/Я организатор/, onorganizer);
+    bot.onText(/Мой пароль: (.+)/, onpswd);
+    
+    bot.onText(/\/timetable/, ontimetable);
+    bot.onText(/Просмотреть расписание/, onsendtt);
+    bot.onText(/Изменить расписание/, onnewtt);
+    bot.onText(/(.+)/, onrawinput);
 }
 
 
-//Bot action handlers
+//USERS
 function onstart(msg, match) {
     var id = msg.chat.id;
     bot.sendMessage(id, "Привет!");
@@ -173,22 +230,76 @@ function onstart(msg, match) {
         })
     };
     bot.sendMessage(msg.chat.id, 'Ты студент или организатор(преподаватель)?', opts);
+}
+function onstudent(msg, match){
+    var id = msg.chat.id;
+    bot.sendMessage(id, "Очень хорошо! Теперь ты в системе!");
+    setdb("users", [[id], []], function(){});
+    return;
+};
+function onorganizer(msg, match){
+    var id = msg.chat.id;
+    bot.sendMessage(id, "Хорошо, но вам нужно подтвердить должность организатора паролем! Напишате мне его так: \"Мой пароль: {пароль}\"");
+};
+function onpswd(msg, match){
+    var id = msg.chat.id;
+    var res = match[1];
+    if (res == global.pswd){
+        bot.sendMessage(id, "Очень хорошо! Теперь вы в системе!");
+        setdb("users", [[], [id]], function(){});
+    }
+    else
+       bot.sendMessage(id, "Так, так! Кто-то пытается притвориться организатором?!"); 
+};
+
+
+//TIMETABLE
+function ontimetable(msg, match) {
+    var id = msg.chat.id;
     
-    bot.onText(/Я студент/, function(msg, match){
-        bot.sendMessage(id, "Очень хорошо! Теперь ты в системе!");
-        setdb("users", [[id], []], function(){});
+    if(global.db_superusers.indexOf(id) > -1){    
+        bot.sendMessage(id, "Хорошо. Приступим.");
+
+        const opts = {
+            reply_markup: JSON.stringify({
+              keyboard: [
+                ["Просмотреть расписание"],
+                ["Изменить расписание"]
+              ],
+              one_time_keyboard:true
+            })
+        };
+        bot.sendMessage(msg.chat.id, "Что вы хотите сделать?", opts);
+    } 
+    else
+        bot.sendMessage(id, "Ученикам нельзя редактировать расписание!");
+}
+function onsendtt(msg, match){
+    var id = msg.chat.id;
+    var x = "Вот расписание:\n" + dbarr_to_str(global.db_plan);
+    bot.sendMessage(id, x);
+}
+function onnewtt(msg, match){
+    var id = msg.chat.id;
+    bot.sendMessage(id, "Теперь введите новое расписание.\nКаждый элемент расписания должен быть разделен \"; \"(точка с запятой и пробел). Каждая элемент: \"{время в формате чч.мм}: {название мероприятия}\"\nНапример:\n11.20: обед; 11.80: прогулка");
+    global.rawinput_state = 1; //Следующий чистый вход - расписание
+}
+
+
+function onrawinput(msg, match){
+    var id = msg.chat.id;
+    if (!ncmd(match[0]))
         return;
-    });
-    bot.onText(/Я организатор/, function(msg, match){
-        bot.sendMessage(id, "Хорошо, но вам нужно подтвердить должность организатора паролем! Напишате мне его так: \"Мой пароль: {пароль}\"");
-        bot.onText(/Мой пароль: (.+)/, function(msg, match){
-            var res = match[1];
-            if (res == global.pswd){
-                bot.sendMessage(id, "Очень хорошо! Теперь вы в системе!");
-                setdb("users", [[], [id]], function(){});
-            }
-            else
-               bot.sendMessage(id, "Так, так! Кто-то пытается притвориться организатором?!"); 
-        });
-    });
+    switch (global.rawinput_state) {
+        case 1:
+            var x = str_to_dbarr(match[0], "; ");
+            setdb('timetable', x, function() {
+                bot.sendMessage(id, "ОК. Новое расписание сохранено!");
+            })
+            break;
+        
+        default:
+            return;
+    }
+    global.rawinput_state = 0;
 }
