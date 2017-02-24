@@ -206,7 +206,6 @@ function start(){
     bot.onText(/\/start/, onstart);
     bot.onText(/Я студент/, onstudent);
     bot.onText(/Я организатор/, onorganizer);
-    bot.onText(/Мой пароль: (.+)/, onpswd);
     
     bot.onText(/\/timetable/, ontimetable);
     bot.onText(/Просмотреть расписание/, onsendtt);
@@ -239,19 +238,9 @@ function onstudent(msg, match){
 };
 function onorganizer(msg, match){
     var id = msg.chat.id;
-    bot.sendMessage(id, "Хорошо, но вам нужно подтвердить должность организатора паролем! Напишате мне его так: \"Мой пароль: {пароль}\"");
+    bot.sendMessage(id, "Хорошо, но вам нужно подтвердить должность организатора паролем! Напишате мне его");
+    global.rawinput_state = 2; //Следующий чистый вход - пароль
 };
-function onpswd(msg, match){
-    var id = msg.chat.id;
-    var res = match[1];
-    if (res == global.pswd){
-        bot.sendMessage(id, "Очень хорошо! Теперь вы в системе!");
-        setdb("users", [[], [id]], function(){});
-    }
-    else
-       bot.sendMessage(id, "Так, так! Кто-то пытается притвориться организатором?!"); 
-};
-
 
 //TIMETABLE
 function ontimetable(msg, match) {
@@ -297,7 +286,16 @@ function onrawinput(msg, match){
                 bot.sendMessage(id, "ОК. Новое расписание сохранено!");
             })
             break;
-        
+        case 2:    
+            var id = msg.chat.id;
+            var res = match[1];
+            if (res == global.pswd){
+                bot.sendMessage(id, "Очень хорошо! Теперь вы в системе!");
+                setdb("users", [[], [id]], function(){});
+            }
+            else
+               bot.sendMessage(id, "Так, так! Кто-то пытается притвориться организатором?!"); 
+            break;
         default:
             return;
     }
