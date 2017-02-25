@@ -23,14 +23,22 @@ global.run = false;
 global.rawinput_state = 0;
 global.cmds = ['start', 'Я студент', 'Я организатор', 'Мой пароль:', 'расписание', 'Просмотреть расписание', 'Изменить расписание', 'информация', 'достижения'];
 
-setInterval(updatedb, 2000);
+var lasttime = "";
 
 function update1() {
 
 }
 
 function update5() {
+    var tNow = moment().utc().utcOffset("+03:00").format("HH.mm");
 
+    for (var i = 0; i < global.db_plan.length; i++) {
+        if (global.db_plan[i][0] == tNow && lasttime != tNow) {
+            var select = global.db_plan[i][1];
+            log("NOW: " + select);
+            lasttime = tNow;
+        }
+    }
 }
 
 function updatedb() {
@@ -49,6 +57,8 @@ function updatedb() {
                             log("DB read successfull\nBot started\n");
                         }
                         global.run = true;
+
+                        updatedb(); //Recursion
                     });
                 });
             });
@@ -383,6 +393,7 @@ function onrawinput(msg, match) {
             var x = str_to_dbarr(msg.text);
             setdb('timetable', x, function() {
                 bot.sendMessage(id, "ОК. Новое расписание сохранено!");
+                broadcast_t(false, "Внимание: новое расписание: \n" + msg.text);
             })
             break;
         case 2:
@@ -401,12 +412,14 @@ function onrawinput(msg, match) {
             var d = msg.text;
             setdb("info", d, function() {
                 bot.sendMessage(id, "Новая информация записана\n");
+                broadcast_t(false, "Внимание: новая информация: \n" + x);
             });
             break;
         case 4:
             var x = str_to_dbarr(msg.text);
             setdb('achievements', x, function() {
                 bot.sendMessage(id, "ОК. Новое достижение добавлено!");
+                broadcast_t(false, "Новое достижение: \n" + msg.text);
             })
             break;
         default:
@@ -438,3 +451,7 @@ function start() {
     bot.onText(/Просмотреть достижения/, onsendach);
     bot.onText(/Добавить достижение/, onnewach);
 }
+
+
+//START
+updatedb(); //This will get DB and when first data pack processed, it will run start()
