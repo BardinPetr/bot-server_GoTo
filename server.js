@@ -4,7 +4,6 @@ var http = require("http");
 var path = require("path");
 var moment = require("moment");
 
-var async = require("async");
 var socketio = require("socket.io");
 var express = require("express");
 
@@ -24,15 +23,12 @@ global.db_info_text;
 global.db_achiev_arr;
 global.ok = false;
 
-setInterval(update5, 5000);
-setInterval(update1, 1000);
-
 function update1() {
   broadcast("time", moment().utc().utcOffset("+03:00").format("H:mm:ss"));
   broadcast("r_ach", dbarr_to_str(global.db_achiev_arr));
 }
 
-function update5() {
+function updatedb() {
   mongo.connect(url, function(err, db) {
     assert.equal(null, err);
 
@@ -40,9 +36,12 @@ function update5() {
       getdb(db, "timetable", function() {
         getdb(db, "achievements", function() {
           db.close();
-          if (!global.ok)
+          if (!global.ok) {
             start_srv();
+          }
           global.ok = true;
+
+          updatedb();
         });
       });
     });
@@ -50,7 +49,7 @@ function update5() {
 }
 
 
-var getdb = function(db, col, callback) {
+function getdb(db, col, callback) {
   var collection = db.collection(col);
   collection.find({
     "main": true
@@ -69,9 +68,9 @@ var getdb = function(db, col, callback) {
     }
     callback(docs[0].body);
   });
-};
+}
 
-var setdb = function(col, data, callback) {
+function setdb(col, data, callback) {
   mongo.connect(url, function(err, db) {
     assert.equal(null, err);
     var collection = db.collection(col);
@@ -107,11 +106,12 @@ var setdb = function(col, data, callback) {
       });
     }
   });
-};
+}
 
 function log(data) {
-  if (DEBUG)
+  if (DEBUG) {
     console.log(data);
+  }
 }
 
 function dbarr_to_str(data) {
@@ -142,6 +142,20 @@ function str_to_dbarr(data) {
   return [];
 }
 
+function broadcast(event, data) {
+  sockets.forEach(function(socket) {
+    socket.emit(event, data);
+  });
+}
+
+function start_srv() {
+  server.listen(process.env.PORT || 80, process.env.IP || "127.0.0.1", function() {
+    var addr = server.address();
+    log("Server listening at", addr.address + ":" + addr.port);
+
+    setInterval(update1, 1000);
+  });
+}
 
 io.on("connection", function(socket) {
   if (global.ok) {
@@ -161,7 +175,7 @@ io.on("connection", function(socket) {
       log("New dayplan recieved: \n" + msg);
     });
 
-    socket.on("req_dayplan", function(msg) {
+    socket.on("req_dayplan", function() {
       log("Dayplan requested");
       broadcast("r_dayplan", dbarr_to_str(global.db_plan_text));
     });
@@ -172,7 +186,7 @@ io.on("connection", function(socket) {
       log("New info recieved: \n" + msg);
     });
 
-    socket.on("req_info", function(msg) {
+    socket.on("req_info", function() {
       log("Info requested");
       broadcast("r_info", global.db_info_text);
     });
@@ -188,7 +202,7 @@ io.on("connection", function(socket) {
       log("New achievement recieved: \n" + msg);
     });
 
-    socket.on("req_ach", function(msg) {
+    socket.on("req_ach", function() {
       log("Ach requested");
       broadcast("r_ach", dbarr_to_str(global.db_achiev_arr));
     });
@@ -196,15 +210,5 @@ io.on("connection", function(socket) {
 });
 
 
-function broadcast(event, data) {
-  sockets.forEach(function(socket) {
-    sоcket.emit(event, data);
-  });
-}
-
-function start_srv() {
-  server.listen(process.env.PORT || 80, process.env.IP || "127.0.0.1", function() {
-    var addr = server.address();
-    log("Server listening at", addr.address + ":" + addr.port);
-  });
-}
+//START ALL
+updatedb();
