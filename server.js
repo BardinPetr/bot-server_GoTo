@@ -28,6 +28,15 @@ function update1() {
   broadcast("r_ach", dbarr_to_str(global.db_achiev_arr));
 }
 
+function start_srv() {
+  server.listen(process.env.PORT || 80, process.env.IP || "127.0.0.1", function() {
+    var addr = server.address();
+    log("Server listening at", addr.address + ":" + addr.port);
+
+    setInterval(update1, 1000);
+  });
+}
+
 function updatedb() {
   mongo.connect(url, function(err, db) {
     assert.equal(null, err);
@@ -145,15 +154,6 @@ function str_to_dbarr(data) {
 function broadcast(event, data) {
   sockets.forEach(function(socket) {
     socket.emit(event, data);
-  });
-}
-
-function start_srv() {
-  server.listen(process.env.PORT || 80, process.env.IP || "127.0.0.1", function() {
-    var addr = server.address();
-    log("Server listening at", addr.address + ":" + addr.port);
-
-    setInterval(update1, 1000);
   });
 }
 

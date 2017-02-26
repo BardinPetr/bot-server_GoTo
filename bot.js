@@ -1,16 +1,16 @@
 const DEBUG = true;
 
-var TelegramBot = require('node-telegram-bot-api');
+var TelegramBot = require("node-telegram-bot-api");
 
-const token = '377701943:AAHl_K9HbWI90-CUxqs--mkpp64vU7Ypn3k';
+const token = "377701943:AAHl_K9HbWI90-CUxqs--mkpp64vU7Ypn3k";
 var bot = new TelegramBot(token, {
     polling: true
 });
 
 var moment = require("moment");
-var mongo = require('mongodb').MongoClient,
-    assert = require('assert');
-var url = 'mongodb://localhost:27017/goto_bot';
+var mongo = require("mongodb").MongoClient,
+    assert = require("assert");
+var url = "mongodb://localhost:27017/goto_bot";
 
 
 global.db_plan;
@@ -21,7 +21,7 @@ global.db_superusers;
 global.pswd;
 global.run = false;
 global.rawinput_state = 0;
-global.cmds = ['start', 'Я студент', 'Я организатор', 'Мой пароль:', 'расписание', 'Просмотреть расписание', 'Изменить расписание', 'информация', 'достижения'];
+global.cmds = ["start", "Я студент", "Я организатор", "Мой пароль:", "расписание", "Просмотреть расписание", "Изменить расписание", "информация", "достижения"];
 
 var lasttime = "";
 
@@ -34,24 +34,23 @@ function update5() {
     var t15AfterNow = moment().utc().utcOffset("+03:15").format("HH.mm");
     var select = "";
 
-    if (tNow == "07.00") {
+    if (tNow === "07.00") {
         broadcast_a("Доброе утро!");
         broadcast_t(false, "Вот расписание на сегодня:\n" + dbarr_to_str(global.db_plan));
     }
 
     for (var i = 0; i < global.db_plan.length; i++) {
-        if (lasttime != tNow && lasttime != t15AfterNow) {
-            if (global.db_plan[i][0] == tNow) {
-                select = global.db_plan[i][1];
-                lasttime = tNow;
-                broadcast_t(false, "Внимание! Уже сейчас: " + select);
-            }
-            else if (global.db_plan[i][0] == t15AfterNow) {
-                select = global.db_plan[i][1];
-                lasttime = t15AfterNow;
-                broadcast_t(false, "Внимание: через 15 минут: " + select);
-            }
+        if (global.db_plan[i][0] === tNow && lasttime !== tNow) {
+            select = global.db_plan[i][1];
+            lasttime = tNow;
+            broadcast_t(false, "Внимание! Уже сейчас: " + select);
         }
+        else if (global.db_plan[i][0] == t15AfterNow && lasttime !== t15AfterNow) {
+            select = global.db_plan[i][1];
+            lasttime = t15AfterNow;
+            broadcast_t(false, "Внимание: через 15 минут: " + select);
+        }
+        log(global.db_plan[i][0] + "  " + t15AfterNow);
     }
 }
 
@@ -61,10 +60,10 @@ function updatedb() {
     mongo.connect(url, function(err, db) {
         assert.equal(null, err);
 
-        getdb(db, 'info', function() {
-            getdb(db, 'timetable', function() {
-                getdb(db, 'achievements', function() {
-                    getdb(db, 'users', function() {
+        getdb(db, "info", function() {
+            getdb(db, "timetable", function() {
+                getdb(db, "achievements", function() {
+                    getdb(db, "users", function() {
                         db.close();
                         if (!global.run) {
                             start();
@@ -80,23 +79,23 @@ function updatedb() {
     });
 }
 
-var getdb = function(db, col, callback) {
+function getdb(db, col, callback) {
     var collection = db.collection(col);
     collection.find({
         "main": true
     }).toArray(function(err, docs) {
         assert.equal(err, null);
         switch (col) {
-            case 'info':
+            case "info":
                 global.db_info = docs[0].body;
                 break;
-            case 'timetable':
+            case "timetable":
                 global.db_plan = docs[0].body;
                 break;
-            case 'achievements':
+            case "achievements":
                 global.db_achiev = docs[0].body;
                 break;
-            case 'users':
+            case "users":
                 global.db_users = docs[0].body.users;
                 global.db_superusers = docs[0].body.superusers;
                 global.pswd = docs[0].body.password;
@@ -106,12 +105,12 @@ var getdb = function(db, col, callback) {
     });
 };
 
-var setdb = function(col, data, callback) {
+function setdb(col, data, callback) {
     mongo.connect(url, function(err, db) {
         assert.equal(null, err);
         var collection = db.collection(col);
-        if (col == 'users') {
-            getdb(db, 'users', function(data1) {
+        if (col === "users") {
+            getdb(db, "users", function(data1) {
                 var pre1 = unique(data1.users.concat(data[0]));
                 var pre2 = unique(data1.superusers.concat(data[1]));
 
@@ -133,7 +132,7 @@ var setdb = function(col, data, callback) {
                     });
             });
         }
-        else if (col != 'achievements') {
+        else if (col !== "achievements") {
             collection.updateOne({
                     "main": true
                 }, {
@@ -148,7 +147,7 @@ var setdb = function(col, data, callback) {
                 });
         }
         else {
-            getdb(db, 'achievements', function(data1) {
+            getdb(db, "achievements", function(data1) {
                 var pre = data1.concat(data);
                 collection.updateOne({
                         "main": true
@@ -173,7 +172,7 @@ function unique(data) {
         k = 1;
 
     for (var i = 1; i < data.length; i++) {
-        if (data[i] != a) {
+        if (data[i] !== a) {
             data[k] = data[i];
             a = data[i];
             k++;
@@ -186,7 +185,7 @@ function unique(data) {
 function ncmd(text) {
     for (var i = 0; i < global.cmds.length; i++) {
         var x = global.cmds[i];
-        if (text.indexOf(x) != -1)
+        if (text.indexOf(x) !== -1)
             return 0;
     }
     return 1;
@@ -199,7 +198,7 @@ function log(data) {
 
 function broadcast_t(type, text) {
     log("Starting broadcast sending message...")
-    var arr = (type == false ? global.db_users : global.db_superusers)
+    var arr = (type === false ? global.db_users : global.db_superusers)
     for (var i = 0; i < arr.length; i++) {
         var id = arr[i];
         if (id) {
@@ -219,9 +218,9 @@ function dbarr_to_str(data) {
     var out = [];
     try {
         for (var i = 0; i < data.length; i++) {
-            out[i] = data[i].join(': ');
+            out[i] = data[i].join(": ");
         }
-        return out.join('\n');
+        return out.join("\n");
     }
     catch (E) {
 
@@ -247,7 +246,7 @@ function str_to_dbarr(data, del) {
     try {
         var prearr = data.split(del);
         for (var i = 0; i < prearr.length; i++) {
-            prearr[i] = prearr[i].split(': ');
+            prearr[i] = prearr[i].split(": ");
         }
         return prearr
     }
@@ -272,7 +271,7 @@ function onstart(msg, match) {
             one_time_keyboard: true
         })
     };
-    bot.sendMessage(msg.chat.id, 'Ты студент или организатор(преподаватель)?', opts);
+    bot.sendMessage(msg.chat.id, "Ты студент или организатор(преподаватель)?", opts);
 }
 
 function onstudent(msg, match) {
@@ -283,13 +282,13 @@ function onstudent(msg, match) {
         []
     ], function() {});
     return;
-};
+}
 
 function onorganizer(msg, match) {
     var id = msg.chat.id;
     bot.sendMessage(id, "Хорошо, но вам нужно подтвердить должность организатора паролем! Напишате мне его");
     global.rawinput_state = 2; //Следующий чистый вход - пароль
-};
+}
 
 //TIMETABLE
 function ontimetable(msg, match) {
@@ -405,14 +404,14 @@ function onrawinput(msg, match) {
     switch (global.rawinput_state) {
         case 1:
             var x = str_to_dbarr(msg.text);
-            setdb('timetable', x, function() {
+            setdb("timetable", x, function() {
                 bot.sendMessage(id, "ОК. Новое расписание сохранено!");
                 broadcast_t(false, "Внимание: новое расписание: \n" + msg.text);
             })
             break;
         case 2:
             var res = match[1];
-            if (res == global.pswd) {
+            if (res === global.pswd) {
                 bot.sendMessage(id, "Здравствуй, " + msg.from.first_name + "! Очень хорошо! Теперь вы в системе!");
                 setdb("users", [
                     [],
@@ -431,7 +430,7 @@ function onrawinput(msg, match) {
             break;
         case 4:
             var x = str_to_dbarr(msg.text);
-            setdb('achievements', x, function() {
+            setdb("achievements", x, function() {
                 bot.sendMessage(id, "ОК. Новое достижение добавлено!");
                 broadcast_t(false, "Новое достижение: \n" + msg.text);
             })
