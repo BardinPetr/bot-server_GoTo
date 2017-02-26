@@ -31,12 +31,26 @@ function update1() {
 
 function update5() {
     var tNow = moment().utc().utcOffset("+03:00").format("HH.mm");
+    var t15AfterNow = moment().utc().utcOffset("+03:15").format("HH.mm");
+    var select = "";
+
+    if (tNow == "07.00") {
+        broadcast_a("Доброе утро!");
+        broadcast_t(false, "Вот расписание на сегодня:\n" + dbarr_to_str(global.db_plan));
+    }
 
     for (var i = 0; i < global.db_plan.length; i++) {
-        if (global.db_plan[i][0] == tNow && lasttime != tNow) {
-            var select = global.db_plan[i][1];
-            log("NOW: " + select);
-            lasttime = tNow;
+        if (lasttime != tNow && lasttime != t15AfterNow) {
+            if (global.db_plan[i][0] == tNow) {
+                select = global.db_plan[i][1];
+                lasttime = tNow;
+                broadcast_t(false, "Внимание! Уже сейчас: " + select);
+            }
+            else if (global.db_plan[i][0] == t15AfterNow) {
+                select = global.db_plan[i][1];
+                lasttime = t15AfterNow;
+                broadcast_t(false, "Внимание: через 15 минут: " + select);
+            }
         }
     }
 }
