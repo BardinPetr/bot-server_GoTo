@@ -21,7 +21,8 @@ global.db_superusers;
 global.pswd;
 global.run = false;
 global.rawinput_state = 0;
-global.cmds = ["start", "Я студент", "Я организатор", "Мой пароль:", "расписание", "Просмотреть расписание", "Изменить расписание", "информация", "достижения"];
+global.cmds = ["start", "сообщения", "Написать участикам", "Написать организанорам", "Я студент", "Я организатор", "Мой пароль:", "расписание", "Просмотреть расписание", "Изменить расписание", "информация", "достижения"];
+global.sendto = false;
 
 var lasttime = "";
 
@@ -45,12 +46,11 @@ function update5() {
             lasttime = tNow;
             broadcast_t(false, "Внимание! Уже сейчас: " + select);
         }
-        else if (global.db_plan[i][0] == t15AfterNow && lasttime !== t15AfterNow) {
+        else if (global.db_plan[i][0] === t15AfterNow && lasttime !== t15AfterNow) {
             select = global.db_plan[i][1];
             lasttime = t15AfterNow;
             broadcast_t(false, "Внимание: через 15 минут: " + select);
         }
-        log(global.db_plan[i][0] + "  " + t15AfterNow);
     }
 }
 
@@ -103,7 +103,7 @@ function getdb(db, col, callback) {
         }
         callback(docs[0].body);
     });
-};
+}
 
 function setdb(col, data, callback) {
     mongo.connect(url, function(err, db) {
@@ -164,7 +164,7 @@ function setdb(col, data, callback) {
             });
         }
     });
-};
+}
 
 function unique(data) {
     data = data.sort();
@@ -197,8 +197,8 @@ function log(data) {
 }
 
 function broadcast_t(type, text) {
-    log("Starting broadcast sending message...")
-    var arr = (type === false ? global.db_users : global.db_superusers)
+    log("Starting broadcast sending message...");
+    var arr = (type === false ? global.db_users : global.db_superusers);
     for (var i = 0; i < arr.length; i++) {
         var id = arr[i];
         if (id) {
@@ -228,27 +228,13 @@ function dbarr_to_str(data) {
     return "";
 }
 
-function str_to_dbarr(data) {
-    try {
-        var prearr = data.split("\n");
-        for (var i = 0; i < prearr.length; i++) {
-            prearr[i] = prearr[i].split(": ");
-        }
-        return prearr
-    }
-    catch (E) {
-
-    }
-    return [];
-}
-
 function str_to_dbarr(data, del) {
     try {
         var prearr = data.split(del);
         for (var i = 0; i < prearr.length; i++) {
             prearr[i] = prearr[i].split(": ");
         }
-        return prearr
+        return prearr;
     }
     catch (E) {
 
@@ -396,6 +382,43 @@ function onnewach(msg, match) {
 }
 
 
+//MESSAGES
+function onmsg(msg, match) {
+    var id = msg.chat.id;
+
+    bot.sendMessage(id, "Хорошо.");
+
+    const opts = {
+        reply_markup: JSON.stringify({
+            keyboard: [
+                ["Написать участикам"],
+                ["Написать организанорам"]
+            ],
+            one_time_keyboard: true
+        })
+    };
+    bot.sendMessage(msg.chat.id, "Кому вы хотите написать?", opts);
+}
+
+function onorgmsg(msg, match) {
+    var id = msg.chat.id;
+    if (global.db_superusers.indexOf(id) > -1) {
+        global.sendto = true;
+        global.rawinput_state = 5;
+        bot.sendMessage(id, "ОК. Введите сообщение.");
+    }
+    else {
+        bot.sendMessage(id, "Участникам нельзя использовать эту функцию");
+    }
+}
+
+function onusermsg(msg, match) {
+    var id = msg.chat.id;
+    global.sendto = false;
+    global.rawinput_state = 5;
+    bot.sendMessage(id, "ОК. Введите сообщение.");
+}
+
 //RAW INPUT HANDLING
 function onrawinput(msg, match) {
     var id = msg.chat.id;
@@ -407,7 +430,7 @@ function onrawinput(msg, match) {
             setdb("timetable", x, function() {
                 bot.sendMessage(id, "ОК. Новое расписание сохранено!");
                 broadcast_t(false, "Внимание: новое расписание: \n" + msg.text);
-            })
+            });
             break;
         case 2:
             var res = match[1];
@@ -433,7 +456,11 @@ function onrawinput(msg, match) {
             setdb("achievements", x, function() {
                 bot.sendMessage(id, "ОК. Новое достижение добавлено!");
                 broadcast_t(false, "Новое достижение: \n" + msg.text);
-            })
+            });
+            break;
+        case 5:
+            var text = msg.text + "\nОт: " + msg.from.first_name;
+            broadcast_t(global.sendto, text);
             break;
         default:
             return;
@@ -463,6 +490,10 @@ function start() {
     bot.onText(/\/достижения/, onach);
     bot.onText(/Просмотреть достижения/, onsendach);
     bot.onText(/Добавить достижение/, onnewach);
+
+    bot.onText(/\/сообщения/, onmsg);
+    bot.onText(/Написать участикам/, onusermsg);
+    bot.onText(/Написать организанорам/, onorgmsg);
 }
 
 
