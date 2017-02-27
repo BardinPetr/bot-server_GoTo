@@ -196,6 +196,19 @@ function log(data) {
         console.log(data);
 }
 
+function broadcast_f(func) {
+    log("Starting broadcast func sending...");
+    var arr = global.db_users.concat(global.db_superusers);
+    for (var i = 0; i < arr.length; i++) {
+        var id = arr[i];
+        if (id) {
+            log("Sending data to " + id);
+            func(id);
+        }
+    }
+    log("Sending finished");
+}
+
 function broadcast_t(type, text) {
     log("Starting broadcast sending message...");
     var arr = (type === false ? global.db_users : global.db_superusers);
@@ -245,6 +258,7 @@ function str_to_dbarr(data, del) {
 
 //USERS
 function onstart(msg, match) {
+    resetRawInput();
     var id = msg.chat.id;
     bot.sendMessage(id, "Привет!");
 
@@ -261,23 +275,27 @@ function onstart(msg, match) {
 }
 
 function onstudent(msg, match) {
+    resetRawInput();
     var id = msg.chat.id;
     bot.sendMessage(id, "Привет, " + msg.from.first_name + "! Теперь ты в системе!");
     setdb("users", [
         [id],
         []
     ], function() {});
+
+    sendMainMenu(id);
     return;
 }
 
 function onorganizer(msg, match) {
     var id = msg.chat.id;
     bot.sendMessage(id, "Хорошо, но вам нужно подтвердить должность организатора паролем! Напишате мне его");
-    global.rawinput_state = 2; //Следующий чистый вход - пароль
+    setRawInput(2); //Следующий чистый вход - пароль
 }
 
 //TIMETABLE
 function ontimetable(msg, match) {
+    resetRawInput();
     var id = msg.chat.id;
 
     bot.sendMessage(id, "Хорошо. Приступим.");
@@ -292,13 +310,14 @@ function ontimetable(msg, match) {
         })
     };
     bot.sendMessage(msg.chat.id, "Что вы хотите сделать?", opts);
-
 }
 
 function onsendtt(msg, match) {
+    resetRawInput();
     var id = msg.chat.id;
     var x = "Вот расписание:\n" + dbarr_to_str(global.db_plan);
     bot.sendMessage(id, x);
+    sendMainMenu(id);
 }
 
 function onnewtt(msg, match) {
@@ -306,7 +325,7 @@ function onnewtt(msg, match) {
     log(global.db_superusers);
     if (global.db_superusers.indexOf(id) > -1) {
         bot.sendMessage(id, "Теперь введите новое расписание.\nКаждый элемент должен находиться на отдельной строке(shift+enter).\nКаждый элемент: \"{время в формате чч.мм}: {название мероприятия}\"\nНапример:\n11.20: обед\n11.80: прогулка");
-        global.rawinput_state = 1; //Следующий чистый вход - расписание
+        setRawInput(1); //Следующий чистый вход - расписание
     }
     else
         bot.sendMessage(id, "Ученикам нельзя редактировать расписание!");
@@ -314,6 +333,7 @@ function onnewtt(msg, match) {
 
 //INFO
 function oninfo(msg, match) {
+    resetRawInput();
     var id = msg.chat.id;
     bot.sendMessage(id, "Хорошо. Приступим.");
 
@@ -327,20 +347,21 @@ function oninfo(msg, match) {
         })
     };
     bot.sendMessage(msg.chat.id, "Что вы хотите сделать?", opts);
-
 }
 
 function onsendinfo(msg, match) {
+    resetRawInput();
     var id = msg.chat.id;
     var x = "Вот информация:\n" + global.db_info;
     bot.sendMessage(id, x);
+    sendMainMenu(id);
 }
 
 function onnewinfo(msg, match) {
     var id = msg.chat.id;
     if (global.db_superusers.indexOf(id) > -1) {
         bot.sendMessage(id, "Теперь введите новую информацию.");
-        global.rawinput_state = 3; //Следующий чистый вход - информация
+        setRawInput(3); //Следующий чистый вход - информация
     }
     else
         bot.sendMessage(id, "Ученикам нельзя редактировать информацию!");
@@ -348,6 +369,7 @@ function onnewinfo(msg, match) {
 
 //ACHIEVEMENTS
 function onach(msg, match) {
+    resetRawInput();
     var id = msg.chat.id;
 
     bot.sendMessage(id, "Хорошо. Приступим.");
@@ -362,20 +384,21 @@ function onach(msg, match) {
         })
     };
     bot.sendMessage(msg.chat.id, "Что вы хотите сделать?", opts);
-
 }
 
 function onsendach(msg, match) {
+    resetRawInput();
     var id = msg.chat.id;
     var x = "Вот достижения:\n" + dbarr_to_str(global.db_achiev);
     bot.sendMessage(id, x);
+    sendMainMenu(id);
 }
 
 function onnewach(msg, match) {
     var id = msg.chat.id;
     if (global.db_superusers.indexOf(id) > -1) {
         bot.sendMessage(id, "Теперь введите новое достижение в формате: \"{человек}: {достижение}\"");
-        global.rawinput_state = 4; //Следующий чистый вход - достижение
+        setRawInput(4); //Следующий чистый вход - достижение
     }
     else
         bot.sendMessage(id, "Ученикам нельзя редактировать расписание!");
@@ -384,6 +407,7 @@ function onnewach(msg, match) {
 
 //MESSAGES
 function onmsg(msg, match) {
+    resetRawInput();
     var id = msg.chat.id;
 
     bot.sendMessage(id, "Хорошо.");
@@ -404,7 +428,7 @@ function onorgmsg(msg, match) {
     var id = msg.chat.id;
     if (global.db_superusers.indexOf(id) > -1) {
         global.sendto = true;
-        global.rawinput_state = 5;
+        setRawInput(5);
         bot.sendMessage(id, "ОК. Введите сообщение.");
     }
     else {
@@ -415,8 +439,16 @@ function onorgmsg(msg, match) {
 function onusermsg(msg, match) {
     var id = msg.chat.id;
     global.sendto = false;
-    global.rawinput_state = 5;
+    setRawInput(5);
     bot.sendMessage(id, "ОК. Введите сообщение.");
+}
+
+function resetRawInput() {
+    setRawInput(0);
+}
+
+function setRawInput(v) {
+    global.rawinput_state = v;
 }
 
 //RAW INPUT HANDLING
@@ -430,6 +462,7 @@ function onrawinput(msg, match) {
             setdb("timetable", x, function() {
                 bot.sendMessage(id, "ОК. Новое расписание сохранено!");
                 broadcast_t(false, "Внимание: новое расписание: \n" + msg.text);
+                sendMainMenu(id);
             });
             break;
         case 2:
@@ -439,7 +472,9 @@ function onrawinput(msg, match) {
                 setdb("users", [
                     [],
                     [id]
-                ], function() {});
+                ], function() {
+                    sendMainMenu(id);
+                });
             }
             else
                 bot.sendMessage(id, "Так, так! Кто-то пытается притвориться организатором?!");
@@ -448,7 +483,8 @@ function onrawinput(msg, match) {
             var d = msg.text;
             setdb("info", d, function() {
                 bot.sendMessage(id, "Новая информация записана\n");
-                broadcast_t(false, "Внимание: новая информация: \n" + x);
+                broadcast_t(false, "Внимание: новая информация: \n" + d);
+                sendMainMenu(id);
             });
             break;
         case 4:
@@ -456,18 +492,35 @@ function onrawinput(msg, match) {
             setdb("achievements", x, function() {
                 bot.sendMessage(id, "ОК. Новое достижение добавлено!");
                 broadcast_t(false, "Новое достижение: \n" + msg.text);
+                sendMainMenu(id);
             });
             break;
         case 5:
-            var text = msg.text + "\nОт: " + msg.from.first_name;
+            var text = msg.text + "\nОтправитель: @" + msg.from.username;
             broadcast_t(global.sendto, text);
+            sendMainMenu(id);
             break;
         default:
             return;
     }
-    global.rawinput_state = 0;
+    resetRawInput();
 }
 
+
+function sendMainMenu(id) {
+    const opts = {
+        reply_markup: JSON.stringify({
+            keyboard: [
+                ["\/timetable - расписание"],
+                ["\/information - информация"],
+                ["\/achievements - достижения"],
+                ["\/messaging - сообщения"]
+            ],
+            one_time_keyboard: true
+        })
+    };
+    bot.sendMessage(id, "\n\nЧто вы хотите сделать?", opts);
+}
 
 function start() {
     setInterval(update5, 5000);
@@ -479,21 +532,23 @@ function start() {
     bot.onText(/Я студент/, onstudent);
     bot.onText(/Я организатор/, onorganizer);
 
-    bot.onText(/\/расписание/, ontimetable);
+    bot.onText(/\/timetable/, ontimetable);
     bot.onText(/Просмотреть расписание/, onsendtt);
     bot.onText(/Изменить расписание/, onnewtt);
 
-    bot.onText(/\/информация/, oninfo);
+    bot.onText(/\/information/, oninfo);
     bot.onText(/Просмотреть информацию/, onsendinfo);
     bot.onText(/Изменить информацию/, onnewinfo);
 
-    bot.onText(/\/достижения/, onach);
+    bot.onText(/\/achievements/, onach);
     bot.onText(/Просмотреть достижения/, onsendach);
     bot.onText(/Добавить достижение/, onnewach);
 
-    bot.onText(/\/сообщения/, onmsg);
+    bot.onText(/\/messaging/, onmsg);
     bot.onText(/Написать участикам/, onusermsg);
     bot.onText(/Написать организанорам/, onorgmsg);
+
+    broadcast_f(sendMainMenu);
 }
 
 
