@@ -13,22 +13,24 @@ var mongo = require("mongodb").MongoClient,
 var url = "mongodb://localhost:27017/goto_bot";
 
 
-global.db_plan;
-global.db_info;
-global.db_achiev;
-global.db_users;
-global.db_superusers;
-global.pswd;
+global.db_plan = [
+    []
+];
+global.db_info = "NO INFO";
+global.db_achiev = [
+    []
+];
+global.db_users = [];
+global.db_superusers = [];
+global.pswd = "pswd";
 global.run = false;
 global.rawinput_state = 0;
 global.cmds = ["start", "сообщения", "Написать участикам", "Написать организанорам", "Я студент", "Я организатор", "Мой пароль:", "расписание", "Просмотреть расписание", "Изменить расписание", "информация", "достижения"];
 global.sendto = false;
+global.dbConnectionsCount = 0;
+global.dbOk = false;
 
 var lasttime = "";
-
-function update1() {
-
-}
 
 function update5() {
     var tNow = moment().utc().utcOffset("+03:00").format("HH.mm");
@@ -57,9 +59,23 @@ function update5() {
 function updatedb() {
     if (!global.run)
         log("Reading DB...");
-    mongo.connect(url, function(err, db) {
-        assert.equal(null, err);
 
+    mongo.connect(url, function(err, db) {
+        if (err) {
+            if (!global.run) {
+                start();
+                log("Not connected to db!\nTrying to reconnect");
+            }
+            if (global.dbConnectionsCount == 2) {
+                assert(false, "Bot can't connect to db!");
+            }
+            global.run = true;
+            global.dbConnectionsCount++;
+            updatedb();
+        }
+        else {
+            global.dbOk = true;
+        }
         getdb(db, "info", function() {
             getdb(db, "timetable", function() {
                 getdb(db, "achievements", function() {
@@ -70,6 +86,7 @@ function updatedb() {
                             log("DB read successfull\nBot started\n");
                         }
                         global.run = true;
+                        global.dbOk = true;
 
                         updatedb(); //Recursion
                     });
@@ -80,80 +97,71 @@ function updatedb() {
 }
 
 function getdb(db, col, callback) {
-    var collection = db.collection(col);
-    collection.find({
-        "main": true
-    }).toArray(function(err, docs) {
-        assert.equal(err, null);
-        switch (col) {
-            case "info":
-                global.db_info = docs[0].body;
-                break;
-            case "timetable":
-                global.db_plan = docs[0].body;
-                break;
-            case "achievements":
-                global.db_achiev = docs[0].body;
-                break;
-            case "users":
-                global.db_users = docs[0].body.users;
-                global.db_superusers = docs[0].body.superusers;
-                global.pswd = docs[0].body.password;
-                break;
-        }
-        callback(docs[0].body);
-    });
+    if (global.dbOk) {
+        var collection = db.collection(col);
+        collection.find({
+            "main": true
+        }).toArray(function(err, docs) {
+            if (err) {
+                log("Get data from DB is failed!");
+            }
+            switch (col) {
+                case "info":
+                    global.db_info = docs[0].body;
+                    break;
+                case "timetable":
+                    global.db_plan = docs[0].body;
+                    break;
+                case "achievements":
+                    global.db_achiev = docs[0].body;
+                    break;
+                case "users":
+                    global.db_users = docs[0].body.users;
+                    global.db_superusers = docs[0].body.superusers;
+                    global.pswd = docs[0].body.password;
+                    break;
+            }
+            callback(docs[0].body);
+        });
+    }
 }
 
 function setdb(col, data, callback) {
-    mongo.connect(url, function(err, db) {
-        assert.equal(null, err);
-        var collection = db.collection(col);
-        if (col === "users") {
-            getdb(db, "users", function(data1) {
-                var pre1 = unique(data1.users.concat(data[0]));
-                var pre2 = unique(data1.superusers.concat(data[1]));
+    if (global.dbOk) {
+        mongo.connect(url, function(err, db) {
+            if (err) {
+                log("Get data from DB is failed!");
+            }
+            var collection = db.collection(col);
+            if (col === "users") {
+                getdb(db, "users", function(data1) {
+                    var pre1 = unique(data1.users.concat(data[0]));
+                    var pre2 = unique(data1.superusers.concat(data[1]));
 
-                collection.updateOne({
-                        "main": true
-                    }, {
-                        $set: {
-                            "body": {
-                                "users": pre1,
-                                "superusers": pre2,
-                                "password": (data[3] || data1.password)
+                    collection.updateOne({
+                            "main": true
+                        }, {
+                            $set: {
+                                "body": {
+                                    "users": pre1,
+                                    "superusers": pre2,
+                                    "password": (data[3] || data1.password)
+                                }
                             }
-                        }
-                    },
-                    function(err, result) {
-                        assert.equal(err, null);
-                        assert.equal(1, result.result.n);
-                        callback();
-                    });
-            });
-        }
-        else if (col !== "achievements") {
-            collection.updateOne({
-                    "main": true
-                }, {
-                    $set: {
-                        "body": data
-                    }
-                },
-                function(err, result) {
-                    assert.equal(err, null);
-                    assert.equal(1, result.result.n);
-                    callback();
+                        },
+                        function(err, result) {
+                            assert.equal(err, null);
+                            assert.equal(1, result.result.n);
+                            callback();
+                        });
                 });
-        }
-        else {
-            getdb(db, "achievements", function(data1) {
-                var pre = data1.concat(data);
+            }
+            else if (col !== "achievements") {
                 collection.updateOne({
                         "main": true
                     }, {
                         $set: {
-                            "body": pre
+                            "body": data
                         }
                     },
                     function(err, result) {
@@ -161,9 +169,26 @@ function setdb(col, data, callback) {
                         assert.equal(1, result.result.n);
                         callback();
                     });
-            });
-        }
-    });
+            }
+            else {
+                getdb(db, "achievements", function(data1) {
+                    var pre = data1.concat(data);
+                    collection.updateOne({
+                            "main": true
+                        }, {
+                            $set: {
+                                "body": pre
+                            }
+                        },
+                        function(err, result) {
+                            assert.equal(err, null);
+                            assert.equal(1, result.result.n);
+                            callback();
+                        });
+                });
+            }
+        });
+    }
 }
 
 function unique(data) {
@@ -524,7 +549,6 @@ function sendMainMenu(id) {
 
 function start() {
     setInterval(update5, 5000);
-    setInterval(update1, 1000);
 
     bot.onText(/(.+)/, onrawinput);
 
