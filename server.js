@@ -194,6 +194,7 @@ io.on("connection", function(socket) {
     //MESSAGES
     socket.on("newmsg", function(msg) {
       log("New message recieved: " + msg);
+      broadcast("msg_fromweb", msg);
     });
 
     //ACHIEVEMENTS
