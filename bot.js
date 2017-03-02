@@ -12,6 +12,7 @@ var mongo = require("mongodb").MongoClient,
     assert = require("assert");
 var url = "mongodb://localhost:27017/goto_bot";
 
+var socket = require("socket.io-client")("http://localhost:" + process.env.PORT);
 
 global.db_plan = [
     []
@@ -573,6 +574,10 @@ function start() {
     bot.onText(/Написать организанорам/, onorgmsg);
 
     broadcast_f(sendMainMenu);
+
+    socket.on('msg_fromweb', function(data) {
+        broadcast_a(data + "\nОтправитель: WEB-интерфейс");
+    });
 }
 
 
