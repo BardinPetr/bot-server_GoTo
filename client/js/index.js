@@ -48,9 +48,17 @@ function ClientController($scope) {
   };
 
   ////
-  $scope.sendmsg = function sendmsg() {
+  $scope.sendmsg_a = function sendmsg() {
     console.log('Sending message:', $scope.msg_text);
-    socket.emit('newmsg', $scope.msg_text);
+    socket.emit('newmsg_a', $scope.msg_text);
+  };
+  $scope.sendmsg_o = function sendmsg() {
+    console.log('Sending message:', $scope.msg_text);
+    socket.emit('newmsg_o', $scope.msg_text);
+  };
+  $scope.sendmsg_u = function sendmsg() {
+    console.log('Sending message:', $scope.msg_text);
+    socket.emit('newmsg_u', $scope.msg_text);
   };
 
   ////

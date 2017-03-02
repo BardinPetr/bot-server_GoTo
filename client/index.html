@@ -1,74 +1,76 @@
-
-
 <!doctype html>
+
 <html lang="en" ng-app>
-  <head>
-    <title>GoTo Bot Admin Panel</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
-    <style>
-      body {
-        padding-top: 60px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container" ng-controller="ClientController">
-      <div class="navbar navbar-fixed-top navbar-inverse">
-        <div class="navbar-inner">
-          <div class="pull-right">
-              <h3 ng-model="time_text" id="time">00:00:00</h3>
-          </div>
+
+<head>
+  <title>GoTo Bot Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
+  <style>
+    body {
+      padding-top: 60px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container" ng-controller="ClientController">
+    <div class="navbar navbar-fixed-top navbar-inverse">
+      <div class="navbar-inner">
+        <div class="pull-right">
+          <h3 ng-model="time_text" id="time">00:00:00</h3>
         </div>
       </div>
-      <div class="page-header">
-        <h1>GoTo Bot Admin Panel</h1>
-      </div>
-      <div class="span3">
-          <h3>Plan for day:</h3>
-          <form ng-submit="newplan()">
-              <textarea id="plan_input" name="plan" cols="10" rows="10" class="span4" ng-model="plan_text" 
-                                                                                      placeholder="Type plan here. use: '{time}:{action}'"></textarea>
-              <input type="submit" class="span4 btn btn-primary" value="Send Plan" ng-disabled="!plan_text">
-              <input type="button" class="span2 btn" value="Get Last Plan" ng-click="getplan()">
-          </form>          
-          <h3>Information:</h3>
-          <form ng-submit="setinfo()">
-              <textarea id="info_input" name="plan" cols="10" rows="10" class="span4" ng-model="info_text" 
-                                                                                      placeholder="Type info here."></textarea>
-              <input type="submit" class="span4 btn btn-primary" value="Save Info" ng-disabled="!info_text">
-              <input type="button" class="span2 btn" value="Get Last Info" ng-click="getinfo()">
-          </form>
-      </div>      
-      
-      <div class="pull-right">
+    </div>
+    <div class="page-header">
+      <h1>GoTo Bot Admin Panel</h1>
+    </div>
+    <div class="span3">
+      <h3>Plan for day:</h3>
+      <form ng-submit="newplan()">
+        <textarea id="plan_input" name="plan" cols="10" rows="10" class="span4" ng-model="plan_text" placeholder="Type plan here. use: '{time}:{action}'"></textarea>
+        <input type="submit" class="span4 btn btn-primary" value="Send Plan" ng-disabled="!plan_text">
+        <input type="button" class="span2 btn" value="Get Last Plan" ng-click="getplan()">
+      </form>
+      <h3>Information:</h3>
+      <form ng-submit="setinfo()">
+        <textarea id="info_input" name="plan" cols="10" rows="10" class="span4" ng-model="info_text" placeholder="Type info here."></textarea>
+        <input type="submit" class="span4 btn btn-primary" value="Save Info" ng-disabled="!info_text">
+        <input type="button" class="span2 btn" value="Get Last Info" ng-click="getinfo()">
+      </form>
+    </div>
+
+    <div class="pull-right">
       <div class="span6">
-          <h3>Send a message:</h3>
-          <form ng-submit="sendmsg()">
-              <input type="text" class="span5" ng-model="msg_text" placeholder="Message">
-              <input type="submit" class="span2 btn btn-primary" value="Send Message to all" ng-disabled="!msg_text">
-          </form>          
-          
-          <h3>Achievements:</h3>
-          <ul class="nav nav-list well">
-            <li ng-repeat="i in achiev" ng-bind="i">
-            </li>
-          </ul>
-          <form ng-submit="addach()">
-              <input type="text" class="span5" ng-model="ach_text" placeholder="New achievement">
-              <input type="submit" class="span2 btn btn-primary" value="Add new achievement" ng-disabled="!ach_text">
-              <input type="button" class="span2 btn" value="Get Last Info" ng-click="getach()">
-          </form>    
-      </div>
-      </div>
-      </div>
+        <h3>Send a message:</h3>
+        <form>
+          <input type="text" class="span5" ng-model="msg_text" placeholder="Message">
+          <input type="submit" class="span4 btn btn-primary" value="Send Message to all" ng-disabled="!msg_text" ng-click="sendmsg_a()">
+          <input type="submit" class="span3 btn" value="Send Message to users" ng-disabled="!msg_text" ng-click="sendmsg_u()">
+          <input type="submit" class="span3 btn" value="Send Message to organizers" ng-disabled="!msg_text" ng-click="sendmsg_o()">
+        </form>
+
+        <h3>Achievements:</h3>
+        <ul class="nav nav-list well">
+          <li ng-repeat="i in achiev" ng-bind="i">
+          </li>
+        </ul>
+        <form ng-submit="addach()">
+          <input type="text" class="span5" ng-model="ach_text" placeholder="New achievement">
+          <input type="submit" class="span2 btn btn-primary" value="Add new achievement" ng-disabled="!ach_text">
+          <input type="button" class="span2 btn" value="Get Last Info" ng-click="getach()">
+        </form>
       </div>
     </div>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/angular.min.js"></script>
-    <script src="/js/index.js"></script>
-  </body>
+  </div>
+  </div>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/jquery.min.js"></script>
+  <script src="/js/bootstrap.min.js"></script>
+  <script src="/js/angular.min.js"></script>
+  <script src="/js/index.js"></script>
+</body>
+
 </html>

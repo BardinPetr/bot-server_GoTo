@@ -33,6 +33,95 @@ global.dbOk = false;
 
 var lasttime = "";
 
+function broadcast_f(func) {
+    log("Starting broadcast func sending...");
+    var arr = global.db_users.concat(global.db_superusers);
+    for (var i = 0; i < arr.length; i++) {
+        var id = arr[i];
+        if (id) {
+            log("Sending data to " + id);
+            func(id);
+        }
+    }
+    log("Sending finished");
+}
+
+function broadcast_t(type, text) {
+    log("Starting broadcast sending message...");
+    var arr = (type === false ? global.db_users : global.db_superusers);
+    for (var i = 0; i < arr.length; i++) {
+        var id = arr[i];
+        if (id) {
+            log("Sending data to " + id);
+            bot.sendMessage(id, text);
+        }
+    }
+    log("Sending finished");
+}
+
+function broadcast_a(text) {
+    broadcast_t(false, text);
+    broadcast_t(true, text);
+}
+
+function unique(data) {
+    data = data.sort();
+    var a = data[0],
+        k = 1;
+
+    for (var i = 1; i < data.length; i++) {
+        if (data[i] !== a) {
+            data[k] = data[i];
+            a = data[i];
+            k++;
+        }
+    }
+    data.length = k;
+    return data;
+}
+
+function ncmd(text) {
+    for (var i = 0; i < global.cmds.length; i++) {
+        var x = global.cmds[i];
+        if (text.indexOf(x) !== -1)
+            return 0;
+    }
+    return 1;
+}
+
+function log(data) {
+    if (DEBUG)
+        console.log(data);
+}
+
+function dbarr_to_str(data) {
+    var out = [];
+    try {
+        for (var i = 0; i < data.length; i++) {
+            out[i] = data[i].join(": ");
+        }
+        return out.join("\n");
+    }
+    catch (E) {
+
+    }
+    return "";
+}
+
+function str_to_dbarr(data, del) {
+    try {
+        var prearr = data.split(del);
+        for (var i = 0; i < prearr.length; i++) {
+            prearr[i] = prearr[i].split(": ");
+        }
+        return prearr;
+    }
+    catch (E) {
+
+    }
+    return [];
+}
+
 function update5() {
     var tNow = moment().utc().utcOffset("+03:00").format("HH.mm");
     var t15AfterNow = moment().utc().utcOffset("+03:15").format("HH.mm");
@@ -64,10 +153,9 @@ function updatedb() {
     mongo.connect(url, function(err, db) {
         if (err) {
             if (!global.run) {
-                start();
                 log("Not connected to db!\nTrying to reconnect");
             }
-            if (global.dbConnectionsCount == 2) {
+            if (global.dbConnectionsCount === 2) {
                 assert(false, "Bot can't connect to db!");
             }
             global.run = true;
@@ -191,96 +279,6 @@ function setdb(col, data, callback) {
         });
     }
 }
-
-function unique(data) {
-    data = data.sort();
-    var a = data[0],
-        k = 1;
-
-    for (var i = 1; i < data.length; i++) {
-        if (data[i] !== a) {
-            data[k] = data[i];
-            a = data[i];
-            k++;
-        }
-    }
-    data.length = k;
-    return data;
-}
-
-function ncmd(text) {
-    for (var i = 0; i < global.cmds.length; i++) {
-        var x = global.cmds[i];
-        if (text.indexOf(x) !== -1)
-            return 0;
-    }
-    return 1;
-}
-
-function log(data) {
-    if (DEBUG)
-        console.log(data);
-}
-
-function broadcast_f(func) {
-    log("Starting broadcast func sending...");
-    var arr = global.db_users.concat(global.db_superusers);
-    for (var i = 0; i < arr.length; i++) {
-        var id = arr[i];
-        if (id) {
-            log("Sending data to " + id);
-            func(id);
-        }
-    }
-    log("Sending finished");
-}
-
-function broadcast_t(type, text) {
-    log("Starting broadcast sending message...");
-    var arr = (type === false ? global.db_users : global.db_superusers);
-    for (var i = 0; i < arr.length; i++) {
-        var id = arr[i];
-        if (id) {
-            log("Sending data to " + id);
-            bot.sendMessage(id, text);
-        }
-    }
-    log("Sending finished");
-}
-
-function broadcast_a(text) {
-    broadcast_t(false, text);
-    broadcast_t(true, text);
-}
-
-function dbarr_to_str(data) {
-    var out = [];
-    try {
-        for (var i = 0; i < data.length; i++) {
-            out[i] = data[i].join(": ");
-        }
-        return out.join("\n");
-    }
-    catch (E) {
-
-    }
-    return "";
-}
-
-function str_to_dbarr(data, del) {
-    try {
-        var prearr = data.split(del);
-        for (var i = 0; i < prearr.length; i++) {
-            prearr[i] = prearr[i].split(": ");
-        }
-        return prearr;
-    }
-    catch (E) {
-
-    }
-    return [];
-}
-
 
 //USERS
 function onstart(msg, match) {
@@ -575,8 +573,14 @@ function start() {
 
     broadcast_f(sendMainMenu);
 
-    socket.on('msg_fromweb', function(data) {
+    socket.on('msg_fromweb_a', function(data) {
         broadcast_a(data + "\nОтправитель: WEB-интерфейс");
+    });
+    socket.on('msg_fromweb_o', function(data) {
+        broadcast_t(true, data + "\nОтправитель: WEB-интерфейс");
+    });
+    socket.on('msg_fromweb_u', function(data) {
+        broadcast_t(false, data + "\nОтправитель: WEB-интерфейс");
     });
 }
 

@@ -192,9 +192,17 @@ io.on("connection", function(socket) {
     });
 
     //MESSAGES
-    socket.on("newmsg", function(msg) {
+    socket.on("newmsg_a", function(msg) {
       log("New message recieved: " + msg);
-      broadcast("msg_fromweb", msg);
+      broadcast("msg_fromweb_a", msg);
+    });
+    socket.on("newmsg_o", function(msg) {
+      log("New message recieved (for organizers): " + msg);
+      broadcast("msg_fromweb_o", msg);
+    });
+    socket.on("newmsg_u", function(msg) {
+      log("New message recieved (for users): " + msg);
+      broadcast("msg_fromweb_u", msg);
     });
 
     //ACHIEVEMENTS
