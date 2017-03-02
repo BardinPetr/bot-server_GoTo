@@ -33,6 +33,12 @@ global.dbOk = false;
 
 var lasttime = "";
 
+function log(data) {
+    if (DEBUG) {
+        console.log(data);
+    }
+}
+
 function broadcast_f(func) {
     log("Starting broadcast func sending...");
     var arr = global.db_users.concat(global.db_superusers);
@@ -88,12 +94,6 @@ function ncmd(text) {
         }
     }
     return 1;
-}
-
-function log(data) {
-    if (DEBUG) {
-        console.log(data);
-    }
 }
 
 function dbarr_to_str(data) {
@@ -284,7 +284,7 @@ function setdb(col, data, callback) {
 }
 
 //USERS
-var onstart = function(msg, match) {
+var onstart = function(msg) {
     resetRawInput();
     var id = msg.chat.id;
     bot.sendMessage(id, "Привет!");
@@ -301,7 +301,7 @@ var onstart = function(msg, match) {
     bot.sendMessage(msg.chat.id, "Ты студент или организатор(преподаватель)?", opts);
 };
 
-var onstudent = function(msg, match) {
+var onstudent = function(msg) {
     resetRawInput();
     var id = msg.chat.id;
     bot.sendMessage(id, "Привет, " + msg.from.first_name + "! Теперь ты в системе!");
@@ -314,14 +314,14 @@ var onstudent = function(msg, match) {
     return;
 };
 
-var onorganizer = function(msg, match) {
+var onorganizer = function(msg) {
     var id = msg.chat.id;
     bot.sendMessage(id, "Хорошо, но вам нужно подтвердить должность организатора паролем! Напишате мне его");
     setRawInput(2); //Следующий чистый вход - пароль
 };
 
 //TIMETABLE
-var ontimetable = function(msg, match) {
+var ontimetable = function(msg) {
     resetRawInput();
     var id = msg.chat.id;
 
@@ -339,7 +339,7 @@ var ontimetable = function(msg, match) {
     bot.sendMessage(msg.chat.id, "Что вы хотите сделать?", opts);
 };
 
-var onsendtt = function(msg, match) {
+var onsendtt = function(msg) {
     resetRawInput();
     var id = msg.chat.id;
     var x = "Вот расписание:\n" + dbarr_to_str(global.db_plan);
@@ -347,7 +347,7 @@ var onsendtt = function(msg, match) {
     sendMainMenu(id);
 };
 
-var onnewtt = function(msg, match) {
+var onnewtt = function(msg) {
     var id = msg.chat.id;
     log(global.db_superusers);
     if (global.db_superusers.indexOf(id) > -1) {
@@ -360,7 +360,7 @@ var onnewtt = function(msg, match) {
 };
 
 //INFO
-var oninfo = function(msg, match) {
+var oninfo = function(msg) {
     resetRawInput();
     var id = msg.chat.id;
     bot.sendMessage(id, "Хорошо. Приступим.");
@@ -377,7 +377,7 @@ var oninfo = function(msg, match) {
     bot.sendMessage(msg.chat.id, "Что вы хотите сделать?", opts);
 };
 
-var onsendinfo = function(msg, match) {
+var onsendinfo = function(msg) {
     resetRawInput();
     var id = msg.chat.id;
     var x = "Вот информация:\n" + global.db_info;
@@ -385,7 +385,7 @@ var onsendinfo = function(msg, match) {
     sendMainMenu(id);
 };
 
-var onnewinfo = function(msg, match) {
+var onnewinfo = function(msg) {
     var id = msg.chat.id;
     if (global.db_superusers.indexOf(id) > -1) {
         bot.sendMessage(id, "Теперь введите новую информацию.");
@@ -397,7 +397,7 @@ var onnewinfo = function(msg, match) {
 };
 
 //ACHIEVEMENTS
-var onach = function(msg, match) {
+var onach = function(msg) {
     resetRawInput();
     var id = msg.chat.id;
 
@@ -415,7 +415,7 @@ var onach = function(msg, match) {
     bot.sendMessage(msg.chat.id, "Что вы хотите сделать?", opts);
 };
 
-var onsendach = function(msg, match) {
+var onsendach = function(msg) {
     resetRawInput();
     var id = msg.chat.id;
     var x = "Вот достижения:\n" + dbarr_to_str(global.db_achiev);
@@ -423,19 +423,20 @@ var onsendach = function(msg, match) {
     sendMainMenu(id);
 };
 
-var onnewach = function(msg, match) {
+var onnewach = function(msg) {
     var id = msg.chat.id;
     if (global.db_superusers.indexOf(id) > -1) {
         bot.sendMessage(id, "Теперь введите новое достижение в формате: \"{человек}: {достижение}\"");
         setRawInput(4); //Следующий чистый вход - достижение
     }
-    else
+    else {
         bot.sendMessage(id, "Ученикам нельзя редактировать расписание!");
+    }
 };
 
 
 //MESSAGES
-var onmsg = function(msg, match) {
+var onmsg = function(msg) {
     resetRawInput();
     var id = msg.chat.id;
 
@@ -453,7 +454,7 @@ var onmsg = function(msg, match) {
     bot.sendMessage(msg.chat.id, "Кому вы хотите написать?", opts);
 };
 
-var onorgmsg = function(msg, match) {
+var onorgmsg = function(msg) {
     var id = msg.chat.id;
     if (global.db_superusers.indexOf(id) > -1) {
         global.sendto = true;
@@ -465,7 +466,7 @@ var onorgmsg = function(msg, match) {
     }
 };
 
-var onusermsg = function(msg, match) {
+var onusermsg = function(msg) {
     var id = msg.chat.id;
     global.sendto = false;
     setRawInput(5);
