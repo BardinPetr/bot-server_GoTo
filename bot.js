@@ -1,3 +1,5 @@
+'use strict';
+
 const DEBUG = true;
 
 var TelegramBot = require("node-telegram-bot-api");
@@ -13,6 +15,8 @@ var mongo = require("mongodb").MongoClient,
 var url = "mongodb://localhost:27017/goto_bot";
 
 var socket = require("socket.io-client")("http://localhost:" + process.env.PORT);
+
+var u = require("./util.js");
 
 global.db_plan = [
     []
@@ -33,95 +37,35 @@ global.dbOk = false;
 
 var lasttime = "";
 
-function log(data) {
-    if (DEBUG) {
-        console.log(data);
-    }
-}
-
 function broadcast_f(func) {
-    log("Starting broadcast func sending...");
+    u.log("Starting broadcast func sending...");
     var arr = global.db_users.concat(global.db_superusers);
     for (var i = 0; i < arr.length; i++) {
         var id = arr[i];
         if (id) {
-            log("Sending data to " + id);
+            u.log("Sending data to " + id);
             func(id);
         }
     }
-    log("Sending finished");
+    u.log("Sending finished");
 }
 
 function broadcast_t(type, text) {
-    log("Starting broadcast sending message...");
+    u.log("Starting broadcast sending message...");
     var arr = (type === false ? global.db_users : global.db_superusers);
     for (var i = 0; i < arr.length; i++) {
         var id = arr[i];
         if (id) {
-            log("Sending data to " + id);
+            u.log("Sending data to " + id);
             bot.sendMessage(id, text);
         }
     }
-    log("Sending finished");
+    u.log("Sending finished");
 }
 
 function broadcast_a(text) {
     broadcast_t(false, text);
     broadcast_t(true, text);
-}
-
-function unique(data) {
-    data = data.sort();
-    var a = data[0],
-        k = 1;
-
-    for (var i = 1; i < data.length; i++) {
-        if (data[i] !== a) {
-            data[k] = data[i];
-            a = data[i];
-            k++;
-        }
-    }
-    data.length = k;
-    return data;
-}
-
-function ncmd(text) {
-    for (var i = 0; i < global.cmds.length; i++) {
-        var x = global.cmds[i];
-        if (text.indexOf(x) !== -1) {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-function dbarr_to_str(data) {
-    var out = [];
-    try {
-        for (var i = 0; i < data.length; i++) {
-            out[i] = data[i].join(": ");
-        }
-        return out.join("\n");
-    }
-    catch (E) {
-
-    }
-    return "";
-}
-
-function str_to_dbarr(data, del) {
-    try {
-        var prearr = data.split(del);
-        for (var i = 0; i < prearr.length; i++) {
-            prearr[i] = prearr[i].split(": ");
-        }
-        return prearr;
-    }
-    catch (E) {
-
-    }
-    return [];
 }
 
 function update5() {
@@ -131,7 +75,7 @@ function update5() {
 
     if (tNow === "07.00") {
         broadcast_a("Доброе утро!");
-        broadcast_t(false, "Вот расписание на сегодня:\n" + dbarr_to_str(global.db_plan));
+        broadcast_t(false, "Вот расписание на сегодня:\n" + u.dbarr_to_str(global.db_plan));
     }
 
     for (var i = 0; i < global.db_plan.length; i++) {
@@ -150,13 +94,13 @@ function update5() {
 
 function updatedb() {
     if (!global.run) {
-        log("Reading DB...");
+        u.log("Reading DB...");
     }
 
     mongo.connect(url, function(err, db) {
         if (err) {
             if (!global.run) {
-                log("Not connected to db!\nTrying to reconnect");
+                u.log("Not connected to db!\nTrying to reconnect");
             }
             if (global.dbConnectionsCount === 2) {
                 assert(false, "Bot can't connect to db!");
@@ -175,7 +119,7 @@ function updatedb() {
                         db.close();
                         if (!global.run) {
                             start();
-                            log("DB read successfull\nBot started\n");
+                            u.log("DB read successfull\nBot started\n");
                         }
                         global.run = true;
                         global.dbOk = true;
@@ -195,7 +139,7 @@ function getdb(db, col, callback) {
             "main": true
         }).toArray(function(err, docs) {
             if (err) {
-                log("Get data from DB is failed!");
+                u.log("Get data from DB is failed!");
             }
             switch (col) {
                 case "info":
@@ -222,13 +166,13 @@ function setdb(col, data, callback) {
     if (global.dbOk) {
         mongo.connect(url, function(err, db) {
             if (err) {
-                log("Get data from DB is failed!");
+                u.log("Get data from DB is failed!");
             }
             var collection = db.collection(col);
             if (col === "users") {
                 getdb(db, "users", function(data1) {
-                    var pre1 = unique(data1.users.concat(data[0]));
-                    var pre2 = unique(data1.superusers.concat(data[1]));
+                    var pre1 = u.unique(data1.users.concat(data[0]));
+                    var pre2 = u.unique(data1.superusers.concat(data[1]));
 
                     collection.updateOne({
                             "main": true
@@ -342,14 +286,14 @@ var ontimetable = function(msg) {
 var onsendtt = function(msg) {
     resetRawInput();
     var id = msg.chat.id;
-    var x = "Вот расписание:\n" + dbarr_to_str(global.db_plan);
+    var x = "Вот расписание:\n" + u.dbarr_to_str(global.db_plan);
     bot.sendMessage(id, x);
     sendMainMenu(id);
 };
 
 var onnewtt = function(msg) {
     var id = msg.chat.id;
-    log(global.db_superusers);
+    u.log(global.db_superusers);
     if (global.db_superusers.indexOf(id) > -1) {
         bot.sendMessage(id, "Теперь введите новое расписание.\nКаждый элемент должен находиться на отдельной строке(shift+enter).\nКаждый элемент: \"{время в формате чч.мм}: {название мероприятия}\"\nНапример:\n11.20: обед\n11.80: прогулка");
         setRawInput(1); //Следующий чистый вход - расписание
@@ -418,7 +362,7 @@ var onach = function(msg) {
 var onsendach = function(msg) {
     resetRawInput();
     var id = msg.chat.id;
-    var x = "Вот достижения:\n" + dbarr_to_str(global.db_achiev);
+    var x = "Вот достижения:\n" + u.dbarr_to_str(global.db_achiev);
     bot.sendMessage(id, x);
     sendMainMenu(id);
 };
@@ -484,12 +428,12 @@ function setRawInput(v) {
 //RAW INPUT HANDLING
 function onrawinput(msg, match) {
     var id = msg.chat.id;
-    if (!ncmd(match[0])) {
+    if (!u.ncmd(match[0])) {
         return;
     }
     switch (global.rawinput_state) {
         case 1:
-            var x = str_to_dbarr(msg.text);
+            var x = u.str_to_dbarr(msg.text);
             setdb("timetable", x, function() {
                 bot.sendMessage(id, "ОК. Новое расписание сохранено!");
                 broadcast_t(false, "Внимание: новое расписание: \n" + msg.text);
@@ -520,7 +464,7 @@ function onrawinput(msg, match) {
             });
             break;
         case 4:
-            var x = str_to_dbarr(msg.text);
+            var x = u.str_to_dbarr(msg.text);
             setdb("achievements", x, function() {
                 bot.sendMessage(id, "ОК. Новое достижение добавлено!");
                 broadcast_t(false, "Новое достижение: \n" + msg.text);
