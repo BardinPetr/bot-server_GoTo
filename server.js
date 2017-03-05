@@ -7,15 +7,16 @@ var moment = require("moment");
 var socketio = require("socket.io");
 var express = require("express");
 
-var mongo = require("mongodb").MongoClient;
 var assert = require("assert");
-var url = "mongodb://localhost:27017/goto_bot";
 
 var router = express();
 var server = http.createServer(router);
 var io = socketio.listen(server);
 
 var u = require("./util.js");
+
+var db = require("./db_worker.js").db_worker;
+db = new db("mongodb://localhost:27017/goto_bot");
 
 router.use(express.static(path.resolve(__dirname, "client")));
 var sockets = [];
@@ -40,86 +41,23 @@ function start_srv() {
 }
 
 function updatedb() {
-  mongo.connect(url, function(err, db) {
-    assert.equal(null, err);
+  db.getdb_c("info", function(data) {
+    global.db_info_text = data;
+    db.getdb_c("timetable", function(data1) {
+      global.db_plan_text = data1;
+      db.getdb_c("achievements", function(data2) {
+        global.db_achiev_arr = data2;
 
-    getdb(db, "info", function() {
-      getdb(db, "timetable", function() {
-        getdb(db, "achievements", function() {
-          db.close();
-          if (!global.ok) {
-            start_srv();
-          }
-          global.ok = true;
+        if (!global.ok) {
+          start_srv();
+        }
+        global.ok = true;
 
-          updatedb();
-        });
+        updatedb();
       });
     });
   });
 }
-
-
-function getdb(db, col, callback) {
-  var collection = db.collection(col);
-  collection.find({
-    "main": true
-  }).toArray(function(err, docs) {
-    assert.equal(err, null);
-    switch (col) {
-      case "info":
-        global.db_info_text = docs[0].body;
-        break;
-      case "timetable":
-        global.db_plan_text = docs[0].body;
-        break;
-      case "achievements":
-        global.db_achiev_arr = docs[0].body;
-        break;
-    }
-    callback(docs[0].body);
-  });
-}
-
-function setdb(col, data, callback) {
-  mongo.connect(url, function(err, db) {
-    assert.equal(null, err);
-    var collection = db.collection(col);
-    if (col !== "achievements") {
-      collection.updateOne({
-          "main": true
-        }, {
-          $set: {
-            "body": data
-          }
-        },
-        function(err, result) {
-          assert.equal(err, null);
-          assert.equal(1, result.result.n);
-          callback();
-        });
-    }
-    else {
-      getdb(db, "achievements", function(data1) {
-        var pre = data1.concat(data);
-        collection.updateOne({
-            "main": true
-          }, {
-            $set: {
-              "body": pre
-            }
-          },
-          function(err, result) {
-            assert.equal(err, null);
-            assert.equal(1, result.result.n);
-            callback();
-          });
-      });
-    }
-  });
-}
-
-
 
 function broadcast(event, data) {
   sockets.forEach(function(socket) {
@@ -141,7 +79,7 @@ io.on("connection", function(socket) {
 
     //DAY PLAN
     socket.on("dayplan", function(msg) {
-      setdb("timetable", u.str_to_dbarr(msg), function() {});
+      db.setdb("timetable", u.str_to_dbarr(msg), function() {});
       u.log("New dayplan recieved: \n" + msg);
     });
 
@@ -152,7 +90,7 @@ io.on("connection", function(socket) {
 
     //INFORMATION
     socket.on("newinfo", function(msg) {
-      setdb("info", msg, function() {});
+      db.setdb("info", msg, function() {});
       u.log("New info recieved: \n" + msg);
     });
 
@@ -177,7 +115,7 @@ io.on("connection", function(socket) {
 
     //ACHIEVEMENTS
     socket.on("newach", function(msg) {
-      setdb("achievements", u.str_to_dbarr(msg), function() {});
+      db.setdb("achievements", u.str_to_dbarr(msg), function() {});
       u.log("New achievement recieved: \n" + msg);
     });
 

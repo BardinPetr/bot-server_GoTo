@@ -10,13 +10,14 @@ var bot = new TelegramBot(token, {
 });
 
 var moment = require("moment");
-var mongo = require("mongodb").MongoClient,
-    assert = require("assert");
-var url = "mongodb://localhost:27017/goto_bot";
+var assert = require("assert");
 
 var socket = require("socket.io-client")("http://localhost:" + process.env.PORT);
 
 var u = require("./util.js");
+
+var db = require("./db_worker.js").db_worker;
+db = new db("mongodb://localhost:27017/goto_bot");
 
 global.db_plan = [
     []
@@ -97,135 +98,30 @@ function updatedb() {
         u.log("Reading DB...");
     }
 
-    mongo.connect(url, function(err, db) {
-        if (err) {
-            if (!global.run) {
-                u.log("Not connected to db!\nTrying to reconnect");
-            }
-            if (global.dbConnectionsCount === 2) {
-                assert(false, "Bot can't connect to db!");
-            }
-            global.run = true;
-            global.dbConnectionsCount++;
-            updatedb();
-        }
-        else {
-            global.dbOk = true;
-        }
-        getdb(db, "info", function() {
-            getdb(db, "timetable", function() {
-                getdb(db, "achievements", function() {
-                    getdb(db, "users", function() {
-                        db.close();
-                        if (!global.run) {
-                            start();
-                            u.log("DB read successfull\nBot started\n");
-                        }
-                        global.run = true;
-                        global.dbOk = true;
+    db.getdb_c("info", function(data) {
+        global.db_info = data;
+        db.getdb_c("timetable", function(data1) {
+            global.db_plan = data1;
+            db.getdb_c("achievements", function(data2) {
+                global.db_achiev = data2;
+                db.getdb_c("users", function(data3) {
+                    global.db_users = data3.users;
+                    global.db_superusers = data3.superuser;
+                    global.pswd = data3.password;
+                    if (!global.run) {
+                        start();
+                        u.log("DB read successfull\nBot started\n");
+                    }
+                    global.run = true;
+                    global.dbOk = true;
 
-                        updatedb(); //Recursion
-                    });
+                    updatedb(); //Recursion
                 });
             });
         });
     });
 }
 
-function getdb(db, col, callback) {
-    if (global.dbOk) {
-        var collection = db.collection(col);
-        collection.find({
-            "main": true
-        }).toArray(function(err, docs) {
-            if (err) {
-                u.log("Get data from DB is failed!");
-            }
-            switch (col) {
-                case "info":
-                    global.db_info = docs[0].body;
-                    break;
-                case "timetable":
-                    global.db_plan = docs[0].body;
-                    break;
-                case "achievements":
-                    global.db_achiev = docs[0].body;
-                    break;
-                case "users":
-                    global.db_users = docs[0].body.users;
-                    global.db_superusers = docs[0].body.superusers;
-                    global.pswd = docs[0].body.password;
-                    break;
-            }
-            callback(docs[0].body);
-        });
-    }
-}
-
-function setdb(col, data, callback) {
-    if (global.dbOk) {
-        mongo.connect(url, function(err, db) {
-            if (err) {
-                u.log("Get data from DB is failed!");
-            }
-            var collection = db.collection(col);
-            if (col === "users") {
-                getdb(db, "users", function(data1) {
-                    var pre1 = u.unique(data1.users.concat(data[0]));
-                    var pre2 = u.unique(data1.superusers.concat(data[1]));
-
-                    collection.updateOne({
-                            "main": true
-                        }, {
-                            $set: {
-                                "body": {
-                                    "users": pre1,
-                                    "superusers": pre2,
-                                    "password": (data[3] || data1.password)
-                                }
-                            }
-                        },
-                        function(err, result) {
-                            assert.equal(err, null);
-                            assert.equal(1, result.result.n);
-                            callback();
-                        });
-                });
-            }
-            else if (col !== "achievements") {
-                collection.updateOne({
-                        "main": true
-                    }, {
-                        $set: {
-                            "body": data
-                        }
-                    },
-                    function(err, result) {
-                        assert.equal(err, null);
-                        assert.equal(1, result.result.n);
-                        callback();
-                    });
-            }
-            else {
-                getdb(db, "achievements", function(data1) {
-                    var pre = data1.concat(data);
-                    collection.updateOne({
-                            "main": true
-                        }, {
-                            $set: {
-                                "body": pre
-                            }
-                        },
-                        function(err, result) {
-                            assert.equal(err, null);
-                            assert.equal(1, result.result.n);
-                            callback();
-                        });
-                });
-            }
-        });
-    }
-}
 
 //USERS
 var onstart = function(msg) {
