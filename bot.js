@@ -145,7 +145,7 @@ var onstudent = function(msg) {
     resetRawInput();
     var id = msg.chat.id;
     bot.sendMessage(id, "Привет, " + msg.from.first_name + "! Теперь ты в системе!");
-    setdb("users", [
+    db.setdb("users", [
         [id],
         []
     ], function() {});
@@ -330,7 +330,7 @@ function onrawinput(msg, match) {
     switch (global.rawinput_state) {
         case 1:
             var x = u.str_to_dbarr(msg.text);
-            setdb("timetable", x, function() {
+            db.setdb("timetable", x, function() {
                 bot.sendMessage(id, "ОК. Новое расписание сохранено!");
                 broadcast_t(false, "Внимание: новое расписание: \n" + msg.text);
                 sendMainMenu(id);
@@ -340,7 +340,7 @@ function onrawinput(msg, match) {
             var res = match[1];
             if (res === global.pswd) {
                 bot.sendMessage(id, "Здравствуй, " + msg.from.first_name + "! Очень хорошо! Теперь вы в системе!");
-                setdb("users", [
+                db.setdb("users", [
                     [],
                     [id]
                 ], function() {
@@ -353,7 +353,7 @@ function onrawinput(msg, match) {
             break;
         case 3:
             var d = msg.text;
-            setdb("info", d, function() {
+            db.setdb("info", d, function() {
                 bot.sendMessage(id, "Новая информация записана\n");
                 broadcast_t(false, "Внимание: новая информация: \n" + d);
                 sendMainMenu(id);
@@ -361,7 +361,7 @@ function onrawinput(msg, match) {
             break;
         case 4:
             var x = u.str_to_dbarr(msg.text);
-            setdb("achievements", x, function() {
+            db.setdb("achievements", x, function() {
                 bot.sendMessage(id, "ОК. Новое достижение добавлено!");
                 broadcast_t(false, "Новое достижение: \n" + msg.text);
                 sendMainMenu(id);
