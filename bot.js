@@ -324,7 +324,7 @@ function setRawInput(v) {
 //RAW INPUT HANDLING
 function onrawinput(msg, match) {
     var id = msg.chat.id;
-    if (!u.ncmd(match[0])) {
+    if (!u.ncmd(match[0], global.cmds)) {
         return;
     }
     switch (global.rawinput_state) {

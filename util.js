@@ -49,9 +49,9 @@ module.exports.unique = function(data) {
     return data;
 };
 
-module.exports.ncmd = function(text) {
-    for (var i = 0; i < global.cmds.length; i++) {
-        var x = global.cmds[i];
+module.exports.ncmd = function(text, cmds) {
+    for (var i = 0; i < cmds.length; i++) {
+        var x = cmds[i];
         if (text.indexOf(x) !== -1) {
             return 0;
         }

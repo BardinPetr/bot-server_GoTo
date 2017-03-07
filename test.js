@@ -5,6 +5,8 @@ db = new db("mongodb://localhost:27017/goto_bot");
 
 var u = require("./util.js");
 
+console.log(u.unique(["test1", "test2", "test3"]))
+
 db.setdb("users", [
         [12344],
         [],
