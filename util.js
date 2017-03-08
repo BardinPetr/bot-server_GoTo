@@ -52,7 +52,7 @@ module.exports.unique = function(data) {
 module.exports.ncmd = function(text, cmds) {
     for (var i = 0; i < cmds.length; i++) {
         var x = cmds[i];
-        if (text.startsWith(x) !== -1) {
+        if (text.startsWith(x)) {
             return 0;
         }
     }
