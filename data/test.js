@@ -1,5 +1,13 @@
 'use strict';
 
+var chai = require("chai"),
+    expect = chai.expect,
+    should = chai.should(),
+    assert = chai.assert;
+
+console.log((['t']) === ['t'])
+
+/*
 var db = require("./db_worker.js").db_worker;
 db = new db("mongodb://localhost:27017/goto_bot");
 
@@ -38,3 +46,4 @@ db.setdb("info", "test info",
             console.log(body);
         });
     });
+*/

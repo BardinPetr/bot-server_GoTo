@@ -46,7 +46,9 @@ module.exports.unique = function(data) {
         }
     }
     data.length = k;
-    return data;
+
+    var out = data;
+    return out;
 };
 
 module.exports.ncmd = function(text, cmds) {
