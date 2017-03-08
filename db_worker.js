@@ -91,7 +91,6 @@ class db_worker {
                         });
                 });
             }
-            db.close();
         });
     }
 }
