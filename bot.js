@@ -106,7 +106,7 @@ function updatedb() {
                 global.db_achiev = data2;
                 db.getdb_c("users", function(data3) {
                     global.db_users = data3.users;
-                    global.db_superusers = data3.superuser;
+                    global.db_superusers = data3.superusers;
                     global.pswd = data3.password;
                     if (!global.run) {
                         start();
@@ -227,6 +227,7 @@ var onsendinfo = function(msg) {
 
 var onnewinfo = function(msg) {
     var id = msg.chat.id;
+    u.log(global.db_superusers);
     if (global.db_superusers.indexOf(id) > -1) {
         bot.sendMessage(id, "Теперь введите новую информацию.");
         setRawInput(3); //Следующий чистый вход - информация
@@ -324,9 +325,11 @@ function setRawInput(v) {
 //RAW INPUT HANDLING
 function onrawinput(msg, match) {
     var id = msg.chat.id;
+
     if (!u.ncmd(match[0], global.cmds)) {
         return;
     }
+
     switch (global.rawinput_state) {
         case 1:
             var x = u.str_to_dbarr(msg.text);
