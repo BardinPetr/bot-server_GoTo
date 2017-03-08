@@ -46,15 +46,13 @@ module.exports.unique = function(data) {
         }
     }
     data.length = k;
-
-    var out = data;
-    return out;
+    return data;
 };
 
 module.exports.ncmd = function(text, cmds) {
     for (var i = 0; i < cmds.length; i++) {
         var x = cmds[i];
-        if (text.indexOf(x) !== -1) {
+        if (text.startsWith(x) !== -1) {
             return 0;
         }
     }
