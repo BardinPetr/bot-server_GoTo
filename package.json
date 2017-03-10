@@ -1,15 +1,15 @@
 {
   "name": "goto_bot_server",
-  "version": "0.1.0",
+  "version": "0.7.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "mocha",
-    "start": "index.js"
+    "start": "node ./"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BardinPetr/bot-server_GoTo.git"
+    "url": "git+https://github.heroku local webcom/BardinPetr/bot-server_GoTo.git"
   },
   "author": "BardinPetr",
   "license": "MIT",
