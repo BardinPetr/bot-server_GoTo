@@ -40,7 +40,7 @@ class Server {
   }
 
   start_srv() {
-    server.listen(process.env.PORT || 80, process.env.IP || "127.0.0.1", function() {
+    server.listen(process.env.PORT, function() {
       var addr = server.address();
       u.log("Server listening at", addr.address + ":" + addr.port);
 
