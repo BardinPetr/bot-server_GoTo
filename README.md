@@ -47,13 +47,13 @@ For writing backend parts were used modules **socket.io**, **express**, **http**
 #### Principle of operation
 If new client was connected to server, the latest information from the database is sent to him. If the user updates the data from the web page, then the information is immediately updated to the database. 
 #### Methods description
-| command | description |
------ | ------------- | -------------- 
-| start() | Starts server |
-| updatedb() | Get lastest data from db (automaticly called every 10 sec) |
-| start_srv() | Starting server listenning. Adding handlers for socket.io (automaticly called once after first data received from database) |
-| broadcast(event, data) | Send some data to all connected admin-panels |
-| update1() | Sends data from db to web interface (automaticly called every 1 sec) |
+command | description 
+----- | -------------
+start() | Starts server 
+updatedb() | Get lastest data from db (automaticly called every 10 sec) 
+start_srv() | Starting server listenning. Adding handlers for socket.io (automaticly called once after first data received from database) 
+broadcast(event, data) | Send some data to all connected admin-panels 
+update1() | Sends data from db to web interface (automaticly called every 1 sec) 
 ### How to test only server:
 '''javascript
 'use strict';
@@ -72,23 +72,23 @@ After authorization you will be autamaticly notified for every element of timeta
 If any data updated - it will be sended to all users.
 If somebody sends message it will be delivered only for specified group of users.
 #### Bot commands
-| Command | Description |
------ | ----- | -----
-| /start | Starts bot and the authorization process |
-| /timetable | Shows you menu of timetable commands (get, set) |
-| /information | Shows you menu of information commands (get, set) |
-| /achievements | Shows you menu of timetable commands (get, set) |
-| /messaging | Shows you menu of messaging commands (send to students or camp organizers) |
+Command | Description
+----- | -----
+/start | Starts bot and the authorization process
+/timetable | Shows you menu of timetable commands (get, set)
+/information | Shows you menu of information commands (get, set)
+/achievements | Shows you menu of timetable commands (get, set)
+/messaging | Shows you menu of messaging commands (send to students or camp organizers)
 #### Methods description
-| Command | Description |
+Command | Description |
 ----- | ------------- | -------------- 
-| start() | Starts server |
-| updatedb() | Get lastest data from db (automaticly called every 10 sec) |
-| start_bot() | Starting bot. Adding handlers for bot (automaticly called once after first data received from database) |
-| broadcast_t(type, text) | Send message to all users of specified group (false- students, true- camp organizers) |
-| broadcast_a(text) | Send message to all users |
-| update5() | Updates "auto timetable informer" (automaticly called every 5 sec) |
-| sendMainMenu() | Sends menu (main commands - look for *Bot commands*) for speceifed chat id |
+start() | Starts server |
+updatedb() | Get lastest data from db (automaticly called every 10 sec) 
+start_bot() | Starting bot. Adding handlers for bot (automaticly called once after first data received from database) 
+broadcast_t(type, text) | Send message to all users of specified group (false- students, true- camp organizers) 
+broadcast_a(text) | Send message to all users 
+update5() | Updates "auto timetable informer" (automaticly called every 5 sec) 
+sendMainMenu() | Sends menu (main commands - look for *Bot commands*) for speceifed chat id 
 
 ### How to test only bot:
 '''javascript
@@ -97,7 +97,6 @@ var bot = require("./bot.js").Bot;
 bot = new bot("Add here your database address");
 bot.start()
 '''
-
 
 ----------
 
@@ -125,6 +124,6 @@ bot.start();
 ----------
 *Буду надеяться, что хоть кто-нибудь поймет, что я написал выше.*
 *...я без малейшего понятия, почему решил написать readme на английском.*
-*...если решите, что я просто скопировал бота откуда-то - * **вы ошибаетесь** *. Он был написан мной. *
+_...если решите, что я просто скопировал бота откуда-то - **вы ошибаетесь** . Он был написан мной._
 
 Если бот в телеграме или страница на Heroku не работает, просьба писать сюда - bardin.petr@gmail.com
