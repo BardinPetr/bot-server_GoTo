@@ -55,12 +55,12 @@ start_srv() | Starting server listenning. Adding handlers for socket.io (automat
 broadcast(event, data) | Send some data to all connected admin-panels 
 update1() | Sends data from db to web interface (automaticly called every 1 sec) 
 ### How to test only server:
-'''javascript
+```javascript
 'use strict';
 var server = require("./server.js").Server;
 server = new server("Add here your database address");
 server.start()
-'''
+```
 
 ----------
 
@@ -81,8 +81,8 @@ Command | Description
 /messaging | Shows you menu of messaging commands (send to students or camp organizers)
 #### Methods description
 Command | Description |
------ | ------------- | -------------- 
-start() | Starts server |
+----- | ------
+start() | Starts server 
 updatedb() | Get lastest data from db (automaticly called every 10 sec) 
 start_bot() | Starting bot. Adding handlers for bot (automaticly called once after first data received from database) 
 broadcast_t(type, text) | Send message to all users of specified group (false- students, true- camp organizers) 
@@ -91,17 +91,17 @@ update5() | Updates "auto timetable informer" (automaticly called every 5 sec)
 sendMainMenu() | Sends menu (main commands - look for *Bot commands*) for speceifed chat id 
 
 ### How to test only bot:
-'''javascript
+```javascript
 'use strict';
 var bot = require("./bot.js").Bot;
 bot = new bot("Add here your database address");
 bot.start()
-'''
+```
 
 ----------
 
 ## How to run all
-'''javascript
+```javascript
 'use strict';
 
 var server = require("./server.js").Server;
@@ -112,7 +112,7 @@ bot = new bot("Add here your database address");
 
 server.start();
 bot.start();
-'''
+```
 
 # Installation
 *	git clone https://github.com/BardinPetr/bot-server_GoTo.git
