@@ -45,6 +45,7 @@ class Server {
       u.log("Server listening at", addr.address + ":" + addr.port);
 
       setInterval(Server.prototype.update1, 1000);
+      setInterval(Server.prototype.updatedb, 10000);
     });
 
     io.on("connection", function(socket) {
@@ -121,8 +122,6 @@ class Server {
             Server.prototype.start_srv();
           }
           global.ok = true;
-
-          Server.prototype.updatedb();
         });
       });
     });

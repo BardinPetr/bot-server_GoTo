@@ -122,8 +122,6 @@ class Bot {
                         }
                         global.run = true;
                         global.dbOk = true;
-
-                        Bot.prototype.updatedb(); //Recursion
                     });
                 });
             });
@@ -407,6 +405,7 @@ class Bot {
 
     start_bot() {
         setInterval(Bot.prototype.update5, 5000);
+        setInterval(Bot.prototype.updatedb(), 10000);
 
         bot.onText(/(.+)/, Bot.prototype.onrawinput);
 

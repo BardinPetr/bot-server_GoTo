@@ -24,7 +24,7 @@ class db_worker {
         }).toArray(function(err, docs) {
             assert.equal(err, null);
 
-            callback(docs[0].body);
+            callback(err, docs[0].body);
             db.close();
         });
     }

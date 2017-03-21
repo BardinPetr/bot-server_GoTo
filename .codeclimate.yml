@@ -1,0 +1,13 @@
+engines:
+  duplication:
+    enabled: false
+    
+exclude_paths:
+    'client/'
+ratings:
+    'client/js/index.js'
+    'bot.js'    
+    'db_worker.js'
+    'index.js'
+    'server.js'
+    'util.js'
