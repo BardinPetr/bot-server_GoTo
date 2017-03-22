@@ -29,6 +29,9 @@ server.js | Web server implementation class file | Secondary
 db_worker.js | Data base work functions | Third 
 util.js | Utilites functions | Third
 
+## How to start using bot
+At first send to it "/start", then select "student", "camp organizer" in menu. If you selected "student" - thats all. Else, type in password (qwerty), if password correct - authorization finished. 
+Now you can use commands from menu to use bot.
 
 ## General characteristics
 * For writing was used **Node JS**
