@@ -156,7 +156,7 @@ class Bot {
         var id = msg.chat.id;
         bot.sendMessage(id, "Привет, " + msg.from.first_name + "! Теперь ты в системе!");
         db.setdb("users", [
-            [msg.chat.username],
+            [id],
             []
         ], function() {
             Bot.prototype.sendMainMenu(id);
@@ -355,7 +355,7 @@ class Bot {
                     bot.sendMessage(id, "Здравствуй, " + msg.from.first_name + "! Очень хорошо! Теперь вы в системе!");
                     db.setdb("users", [
                         [],
-                        [msg.chat.username]
+                        [id]
                     ], function() {
                         Bot.prototype.sendMainMenu(id);
                     });
@@ -443,6 +443,16 @@ class Bot {
         });
         socket.on("msg_fromweb_u", function(data) {
             Bot.prototype.broadcast_t(false, data + "\nОтправитель: WEB-интерфейс");
+        });
+
+        socket.on("newach_fromweb", function(data) {
+            Bot.prototype.broadcast_t(false, "Новое достижение: \n" + data);
+        });
+        socket.on("newinfo_fromweb", function(data) {
+            Bot.prototype.broadcast_t(false, "Внимание: новая информация: \n" + data);
+        });
+        socket.on("newdayplan_fromweb", function(data) {
+            Bot.prototype.broadcast_t(false, "Внимание: новое расписание: \n" + data);
         });
     }
 }

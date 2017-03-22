@@ -63,6 +63,7 @@ class Server {
         //DAY PLAN
         socket.on("dayplan", function(msg) {
           db.setdb("timetable", u.str_to_dbarr(msg), function() {});
+          Server.prototype.broadcast("newdayplan_fromweb", msg);
           u.log("New dayplan recieved: \n" + msg);
         });
 
@@ -74,6 +75,7 @@ class Server {
         //INFORMATION
         socket.on("newinfo", function(msg) {
           db.setdb("info", msg, function() {});
+          Server.prototype.broadcast("newinfo_fromweb", msg);
           u.log("New info recieved: \n" + msg);
         });
 
@@ -99,6 +101,7 @@ class Server {
         //ACHIEVEMENTS
         socket.on("newach", function(msg) {
           db.setdb("achievements", u.str_to_dbarr(msg), function() {});
+          Server.prototype.broadcast("newach_fromweb", msg);
           u.log("New achievement recieved: \n" + msg);
         });
 
