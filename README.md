@@ -67,7 +67,7 @@ server.start()
 ## Bot (*bot.js*)
 For writing bot were used modules **node-telegram-bot-api**(telegram bot), **moment**(time), **socket.io-client**(communicate with web interface) 
 ### Operation principle
-When you first connect to bot (sends it /start) - you will be asked who you are - a student or camp organizer. If you select a student - you will be added to a database with a limited access - only the data reading capabilities (not changes) are available. If you select an organizer, you will be asked for a password (it is initially set as "", after entering the password you will be added to the database with full access.
+When you first connect to bot (sends it /start) - you will be asked who you are - a student or camp organizer. If you select a student - you will be added to a database with a limited access - only the data reading capabilities (not changes) are available. If you select an organizer, you will be asked for a password (it is initially set as "qwerty", after entering the password you will be added to the database with full access.
 After authorization you will be autamaticly notified for every element of timetable 15 min befire and on-time. All timetable will be sended to users at 7:00 pm and if it changes.
 If any data updated - it will be sended to all users.
 If somebody sends message it will be delivered only for specified group of users.

@@ -5,7 +5,7 @@ var DEBUG = true;
 var http = require("http");
 var path = require("path");
 var moment = require("moment");
-
+var assert = require("assert");
 var socketio = require("socket.io");
 var express = require("express");
 
@@ -111,11 +111,14 @@ class Server {
   }
 
   updatedb() {
-    db.getdb_c("info", function(data) {
+    db.getdb_c("info", function(err, data) {
+      assert.equal(err, null);
       global.db_info_text = data;
-      db.getdb_c("timetable", function(data1) {
+      db.getdb_c("timetable", function(err, data1) {
+        assert.equal(err, null);
         global.db_plan_text = data1;
-        db.getdb_c("achievements", function(data2) {
+        db.getdb_c("achievements", function(err, data2) {
+          assert.equal(err, null);
           global.db_achiev_arr = data2;
 
           if (!global.ok) {

@@ -106,13 +106,17 @@ class Bot {
             u.log("Reading DB...");
         }
 
-        db.getdb_c("info", function(data) {
+        db.getdb_c("info", function(err, data) {
+            assert.equal(err, null);
             global.db_info = data;
-            db.getdb_c("timetable", function(data1) {
+            db.getdb_c("timetable", function(err, data1) {
+                assert.equal(err, null);
                 global.db_plan = data1;
-                db.getdb_c("achievements", function(data2) {
+                db.getdb_c("achievements", function(err, data2) {
+                    assert.equal(err, null);
                     global.db_achiev = data2;
-                    db.getdb_c("users", function(data3) {
+                    db.getdb_c("users", function(err, data3) {
+                        assert.equal(err, null);
                         global.db_users = data3.users;
                         global.db_superusers = data3.superusers;
                         global.pswd = data3.password;
@@ -405,7 +409,7 @@ class Bot {
 
     start_bot() {
         setInterval(Bot.prototype.update5, 5000);
-        setInterval(Bot.prototype.updatedb(), 10000);
+        setInterval(Bot.prototype.updatedb, 10000);
 
         bot.onText(/(.+)/, Bot.prototype.onrawinput);
 

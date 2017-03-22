@@ -23,7 +23,6 @@ class db_worker {
             "main": true
         }).toArray(function(err, docs) {
             assert.equal(err, null);
-
             callback(err, docs[0].body);
             db.close();
         });
