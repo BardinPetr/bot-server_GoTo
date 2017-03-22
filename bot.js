@@ -156,11 +156,11 @@ class Bot {
         var id = msg.chat.id;
         bot.sendMessage(id, "Привет, " + msg.from.first_name + "! Теперь ты в системе!");
         db.setdb("users", [
-            [id],
+            [msg.chat.username],
             []
-        ], function() {});
-
-        Bot.prototype.sendMainMenu(id);
+        ], function() {
+            Bot.prototype.sendMainMenu(id);
+        });
         return;
     }
 
@@ -355,7 +355,7 @@ class Bot {
                     bot.sendMessage(id, "Здравствуй, " + msg.from.first_name + "! Очень хорошо! Теперь вы в системе!");
                     db.setdb("users", [
                         [],
-                        [id]
+                        [msg.chat.username]
                     ], function() {
                         Bot.prototype.sendMainMenu(id);
                     });

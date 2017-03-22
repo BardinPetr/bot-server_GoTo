@@ -34,7 +34,8 @@ class db_worker {
 
             var collection = db.collection(col);
             if (col === "users") {
-                db_worker.prototype.getdb(db, col, function(data1) {
+                db_worker.prototype.getdb(db, col, function(err, data1) {
+                    assert.equal(err, null);
                     var pre1 = u.unique(data1.users.concat(data[0]));
                     var pre2 = u.unique(data1.superusers.concat(data[1]));
 
